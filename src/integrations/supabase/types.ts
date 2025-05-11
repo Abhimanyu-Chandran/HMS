@@ -9,7 +9,125 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          created_at: string
+          date: string
+          doctor_id: string
+          doctor_name: string
+          id: string
+          notes: string | null
+          patient_id: string
+          speciality: string
+          status: string
+          time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          doctor_id: string
+          doctor_name: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          speciality: string
+          status: string
+          time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          doctor_id?: string
+          doctor_name?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          speciality?: string
+          status?: string
+          time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      diagnoses: {
+        Row: {
+          condition: string
+          created_at: string
+          description: string | null
+          doctor_id: string
+          id: string
+          patient_id: string
+          treatment: string | null
+          updated_at: string
+        }
+        Insert: {
+          condition: string
+          created_at?: string
+          description?: string | null
+          doctor_id: string
+          id?: string
+          patient_id: string
+          treatment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          condition?: string
+          created_at?: string
+          description?: string | null
+          doctor_id?: string
+          id?: string
+          patient_id?: string
+          treatment?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          diagnosis_id: string | null
+          dosage: string
+          end_date: string
+          id: string
+          instructions: string | null
+          medication: string
+          patient_id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis_id?: string | null
+          dosage: string
+          end_date: string
+          id?: string
+          instructions?: string | null
+          medication: string
+          patient_id: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis_id?: string | null
+          dosage?: string
+          end_date?: string
+          id?: string
+          instructions?: string | null
+          medication?: string
+          patient_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_diagnosis_id_fkey"
+            columns: ["diagnosis_id"]
+            isOneToOne: false
+            referencedRelation: "diagnoses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

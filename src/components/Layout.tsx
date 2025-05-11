@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,7 +11,8 @@ import {
   LogOut,
   Calendar,
   Star,
-  Users
+  Users,
+  FileText
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -41,6 +41,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Specialities', path: '/specialities', icon: Star },
     { name: 'Medicines', path: '/medicines' },
   ];
+  
+  // Add patient page link for patients
+  if (user?.role === 'patient') {
+    navLinks.push({ name: 'My Health', path: '/patient', icon: FileText });
+  }
 
   // Add admin link for admin users
   if (user?.role === 'admin') {
@@ -115,6 +120,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    {user.role === 'patient' && (
+                      <DropdownMenuItem onClick={() => navigate('/patient')}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>My Health</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem>
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>

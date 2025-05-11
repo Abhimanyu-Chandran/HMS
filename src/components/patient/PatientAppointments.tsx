@@ -1,0 +1,104 @@
+
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import AppointmentCard from '@/components/appointments/AppointmentCard';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface PatientAppointmentsProps {
+  userId?: string;
+}
+
+interface Appointment {
+  id: string;
+  doctor_name: string;
+  speciality: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  date: string;
+  time: string;
+  notes?: string;
+}
+
+const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => {
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!userId) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('patient_id', userId)
+          .order('date', { ascending: true });
+          
+        if (error) throw error;
+        setAppointments(data || []);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [userId]);
+
+  const navigateToBookAppointment = () => {
+    navigate('/appointments');
+  };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="shadow-sm">
+            <CardHeader>
+              <Skeleton className="h-6 w-1/2" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <CardTitle>Your Appointments</CardTitle>
+        <Button onClick={navigateToBookAppointment}>Book New Appointment</Button>
+      </div>
+
+      {appointments.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {appointments.map((appointment) => (
+            <AppointmentCard key={appointment.id} appointment={appointment} />
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <h3 className="text-xl font-medium mb-2">No appointments found</h3>
+            <p className="text-muted-foreground mb-6">
+              You don't have any appointments scheduled.
+            </p>
+            <Button onClick={navigateToBookAppointment}>
+              Book an Appointment
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default PatientAppointments;

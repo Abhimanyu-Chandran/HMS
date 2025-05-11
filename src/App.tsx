@@ -14,6 +14,7 @@ import Medicines from "./pages/Medicines";
 import Appointments from "./pages/Appointments";
 import Specialities from "./pages/Specialities";
 import Cart from "./pages/Cart";
+import Patient from "./pages/Patient";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/appointments" element={<Appointments />} />
               <Route path="/specialities" element={<Specialities />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/patient" element={<Patient />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
