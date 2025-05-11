@@ -27,7 +27,7 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/specialities">
-              <Button size="lg" variant="outline" className="border-white text-white">
+              <Button size="lg" variant="outline" className="border-white text-violet-400">
                 Browse Specialities
               </Button>
             </Link>
