@@ -11,14 +11,29 @@ interface PatientAppointmentsProps {
   userId?: string;
 }
 
-interface Appointment {
+// Define interface to match the Supabase database structure
+interface AppointmentFromDB {
   id: string;
   doctor_name: string;
+  speciality: string;
+  status: string;
+  date: string;
+  time: string;
+  notes?: string;
+  patient_id: string;
+  doctor_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Define interface to match what the AppointmentCard component expects
+interface Appointment {
+  id: string;
+  doctorName: string;
   speciality: string;
   status: 'scheduled' | 'completed' | 'cancelled';
   date: string;
   time: string;
-  notes?: string;
 }
 
 const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => {
@@ -39,7 +54,18 @@ const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => 
           .order('date', { ascending: true });
           
         if (error) throw error;
-        setAppointments(data || []);
+        
+        // Transform data from DB format to the format expected by AppointmentCard
+        const transformedAppointments: Appointment[] = (data || []).map((appointment: AppointmentFromDB) => ({
+          id: appointment.id,
+          doctorName: appointment.doctor_name,
+          speciality: appointment.speciality,
+          status: appointment.status as 'scheduled' | 'completed' | 'cancelled',
+          date: appointment.date,
+          time: appointment.time,
+        }));
+        
+        setAppointments(transformedAppointments);
       } catch (error) {
         console.error('Error fetching appointments:', error);
       } finally {
