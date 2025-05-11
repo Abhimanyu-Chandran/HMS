@@ -45,10 +45,10 @@ const Appointments = () => {
   const [reason, setReason] = useState('');
 
   // Get unique specialities
-  const specialities = ['', ...new Set(doctors.map(doctor => doctor.speciality))];
+  const specialities = ['all', ...new Set(doctors.map(doctor => doctor.speciality))];
 
   // Filter doctors based on selected speciality
-  const filteredDoctors = selectedSpeciality
+  const filteredDoctors = selectedSpeciality && selectedSpeciality !== 'all'
     ? doctors.filter(doctor => doctor.speciality === selectedSpeciality)
     : doctors;
 
@@ -136,7 +136,7 @@ const Appointments = () => {
                         <SelectContent>
                           {specialities.map((speciality) => (
                             <SelectItem key={speciality} value={speciality}>
-                              {speciality || "All Specialities"}
+                              {speciality === 'all' ? "All Specialities" : speciality}
                             </SelectItem>
                           ))}
                         </SelectContent>
