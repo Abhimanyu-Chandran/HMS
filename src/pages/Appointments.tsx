@@ -93,6 +93,14 @@ const Appointments = () => {
     setReason('');
   };
 
+  // Function to navigate to booking tab
+  const navigateToBooking = () => {
+    const bookTabElement = document.querySelector('button[value="book"]');
+    if (bookTabElement) {
+      (bookTabElement as HTMLButtonElement).click();
+    }
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -336,7 +344,7 @@ const Appointments = () => {
                     <p className="text-muted-foreground mb-6">
                       You don't have any appointments scheduled.
                     </p>
-                    <Button onClick={() => document.querySelector('button[value="book"]')?.click()}>
+                    <Button onClick={navigateToBooking}>
                       Book an Appointment
                     </Button>
                   </CardContent>
