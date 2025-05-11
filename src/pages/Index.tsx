@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,12 +6,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Calendar, Star, ShoppingCart, User } from 'lucide-react';
 import { specialities, doctors } from '@/data/mockData';
-
 const Index = () => {
-  const { user } = useAuth();
-
-  return (
-    <Layout>
+  const {
+    user
+  } = useAuth();
+  return <Layout>
       {/* Hero Section */}
       <section className="relative -mt-8 mb-16 bg-gradient-to-br from-hospital-primary to-hospital-secondary text-white py-20 px-4 rounded-xl">
         <div className="max-w-4xl mx-auto">
@@ -29,7 +27,7 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/specialities">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/20">
+              <Button size="lg" variant="outline" className="border-white text-white">
                 Browse Specialities
               </Button>
             </Link>
@@ -96,13 +94,9 @@ const Index = () => {
               <p className="text-center text-gray-600 mb-4">
                 Access your medical records and manage your healthcare journey.
               </p>
-              {user ? (
-                <Button variant="outline">My Profile</Button>
-              ) : (
-                <Link to="/login">
+              {user ? <Button variant="outline">My Profile</Button> : <Link to="/login">
                   <Button variant="outline">Sign In</Button>
-                </Link>
-              )}
+                </Link>}
             </CardContent>
           </Card>
         </div>
@@ -119,9 +113,10 @@ const Index = () => {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {specialities.slice(0, 3).map((speciality) => (
-            <Card key={speciality.id} className="overflow-hidden hover:shadow-md transition-all">
-              <div className="h-48 w-full bg-cover bg-center" style={{ backgroundImage: `url(${speciality.image})` }} />
+          {specialities.slice(0, 3).map(speciality => <Card key={speciality.id} className="overflow-hidden hover:shadow-md transition-all">
+              <div className="h-48 w-full bg-cover bg-center" style={{
+            backgroundImage: `url(${speciality.image})`
+          }} />
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-2">{speciality.name}</h3>
                 <p className="text-gray-600 mb-4">{speciality.description}</p>
@@ -134,8 +129,7 @@ const Index = () => {
                   </Link>
                 </div>
               </CardContent>
-            </Card>
-          ))}
+            </Card>)}
         </div>
       </section>
 
@@ -148,30 +142,16 @@ const Index = () => {
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {doctors.slice(0, 4).map((doctor) => (
-            <Card key={doctor.id} className="hover:shadow-md transition-all">
+          {doctors.slice(0, 4).map(doctor => <Card key={doctor.id} className="hover:shadow-md transition-all">
               <CardContent className="p-6 flex flex-col items-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-4">
-                  <img
-                    src={doctor.image}
-                    alt={doctor.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={doctor.image} alt={doctor.name} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-lg font-semibold mb-1">{doctor.name}</h3>
                 <p className="text-hospital-primary mb-2">{doctor.speciality}</p>
                 <div className="flex items-center mb-4">
                   <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${
-                          i < Math.floor(doctor.rating)
-                            ? "text-yellow-500 fill-yellow-500"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
+                    {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < Math.floor(doctor.rating) ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} />)}
                   </div>
                   <span className="text-sm text-gray-600 ml-2">({doctor.rating})</span>
                 </div>
@@ -179,8 +159,7 @@ const Index = () => {
                   <Button size="sm">Book Appointment</Button>
                 </Link>
               </CardContent>
-            </Card>
-          ))}
+            </Card>)}
         </div>
       </section>
 
@@ -191,12 +170,7 @@ const Index = () => {
           <Card className="hover:shadow-md transition-all">
             <CardContent className="p-6 flex flex-col">
               <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-4 w-4 text-yellow-500 fill-yellow-500"
-                  />
-                ))}
+                {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}
               </div>
               <p className="mb-4 italic text-gray-600">
                 "The care and attention I received at HealthCare was exceptional. The doctors were knowledgeable and took the time to explain everything."
@@ -216,12 +190,7 @@ const Index = () => {
           <Card className="hover:shadow-md transition-all">
             <CardContent className="p-6 flex flex-col">
               <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-4 w-4 text-yellow-500 fill-yellow-500"
-                  />
-                ))}
+                {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}
               </div>
               <p className="mb-4 italic text-gray-600">
                 "I had a great experience with the online medicine ordering service. It was convenient and the delivery was prompt."
@@ -241,12 +210,7 @@ const Index = () => {
           <Card className="hover:shadow-md transition-all">
             <CardContent className="p-6 flex flex-col">
               <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-4 w-4 text-yellow-500 fill-yellow-500"
-                  />
-                ))}
+                {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}
               </div>
               <p className="mb-4 italic text-gray-600">
                 "The appointment booking process was so simple and efficient. I appreciate how easy it was to find a specialist for my needs."
@@ -277,8 +241,6 @@ const Index = () => {
           </Button>
         </Link>
       </section>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Index;
