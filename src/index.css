@@ -5,83 +5,83 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 240 33% 11%;
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 240 33% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 240 33% 11%;
+    --popover-foreground: 0 0% 95%;
 
     --primary: 260 75% 74%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 260 24% 54%;
+    --secondary: 198 93% 60%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 335 77% 70%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 260 75% 74%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-background: 240 33% 11%;
+    --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 260 75% 74%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 260 75% 74%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 240 33% 11%;
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 33% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 33% 11%;
+    --popover-foreground: 0 0% 95%;
 
     --primary: 260 75% 74%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 260 24% 54%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 198 93% 60%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 335 77% 70%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 260 75% 74%;
     
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-background: 240 33% 11%;
+    --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 260 75% 74%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 260 75% 74%;
   }
 }
 
@@ -100,17 +100,54 @@
 }
 
 .hospital-card {
-  @apply bg-white shadow-md rounded-lg p-6 transition-all hover:shadow-lg border border-hospital-soft-blue;
+  @apply bg-card shadow-md rounded-lg p-6 transition-all hover:shadow-lg border border-muted;
 }
 
 .form-container {
-  @apply mx-auto w-full max-w-md p-6 bg-white rounded-lg shadow-md border border-hospital-soft-blue;
+  @apply mx-auto w-full max-w-md p-6 bg-card rounded-lg shadow-md border border-muted;
 }
 
 .page-title {
-  @apply text-3xl font-bold text-hospital-dark mb-6;
+  @apply text-3xl font-bold text-foreground mb-6;
 }
 
 .section-title {
-  @apply text-2xl font-semibold text-hospital-secondary mb-4;
+  @apply text-2xl font-semibold text-secondary mb-4;
 }
+
+/* Gradient text effects */
+.gradient-text-primary {
+  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+}
+
+.gradient-text-accent {
+  @apply bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent;
+}
+
+/* Button gradients */
+.gradient-button {
+  @apply relative overflow-hidden;
+}
+
+.gradient-button::before {
+  @apply content-[''] absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 transition-opacity duration-300;
+}
+
+.gradient-button:hover::before {
+  @apply opacity-100;
+}
+
+/* Card hover effects */
+.feature-card {
+  @apply bg-muted rounded-xl p-6 transition-all duration-300 border border-muted hover:border-primary/30;
+}
+
+.feature-card:hover {
+  @apply shadow-lg shadow-primary/20;
+}
+
+/* Icon background */
+.icon-bg {
+  @apply w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 mb-4;
+}
+
