@@ -93,6 +93,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: adminUser.name,
           email: adminUser.email,
           role: adminUser.role,
+          age: null,
+          diseases: [],
+          disorders: []
         }, { onConflict: 'user_id' });
         
         toast({

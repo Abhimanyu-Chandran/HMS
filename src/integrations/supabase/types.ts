@@ -128,6 +128,36 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          age: number | null
+          diseases: string[] | null
+          disorders: string[] | null
+          email: string
+          name: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          diseases?: string[] | null
+          disorders?: string[] | null
+          email: string
+          name: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          diseases?: string[] | null
+          disorders?: string[] | null
+          email?: string
+          name?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
