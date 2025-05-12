@@ -10,21 +10,33 @@ import PatientPrescriptions from '@/components/patient/PatientPrescriptions';
 import PatientAppointments from '@/components/patient/PatientAppointments';
 import PatientSummary from '@/components/patient/PatientSummary';
 import PatientProfile from '@/components/patient/PatientProfile';
+import { motion } from 'framer-motion';
 
 const Patient = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('summary');
 
+  // Animation variants for tab content
+  const tabContentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
-        <div className="mb-6">
+        <motion.div 
+          className="mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <h1 className="page-title">My Health Information</h1>
           <p className="text-muted-foreground">
             View your profile, diagnoses, prescriptions, and appointments.
           </p>
-        </div>
+        </motion.div>
 
         <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
@@ -35,25 +47,32 @@ const Patient = () => {
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="summary">
-            <PatientSummary userId={user?.id} />
-          </TabsContent>
-          
-          <TabsContent value="profile">
-            <PatientProfile />
-          </TabsContent>
+          <motion.div
+            key={activeTab}
+            initial="hidden"
+            animate="visible"
+            variants={tabContentVariants}
+          >
+            <TabsContent value="summary">
+              <PatientSummary userId={user?.id} />
+            </TabsContent>
+            
+            <TabsContent value="profile">
+              <PatientProfile />
+            </TabsContent>
 
-          <TabsContent value="diagnoses">
-            <PatientDiagnoses userId={user?.id} />
-          </TabsContent>
+            <TabsContent value="diagnoses">
+              <PatientDiagnoses userId={user?.id} />
+            </TabsContent>
 
-          <TabsContent value="prescriptions">
-            <PatientPrescriptions userId={user?.id} />
-          </TabsContent>
+            <TabsContent value="prescriptions">
+              <PatientPrescriptions userId={user?.id} />
+            </TabsContent>
 
-          <TabsContent value="appointments">
-            <PatientAppointments userId={user?.id} />
-          </TabsContent>
+            <TabsContent value="appointments">
+              <PatientAppointments userId={user?.id} />
+            </TabsContent>
+          </motion.div>
         </Tabs>
       </Layout>
     </ProtectedRoute>

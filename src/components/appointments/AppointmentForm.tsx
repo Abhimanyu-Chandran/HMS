@@ -24,9 +24,10 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/components/ui/use-toast';
 import { doctors } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
+import { motion } from 'framer-motion';
 
 interface AppointmentFormProps {
   user: any;
@@ -46,6 +47,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [selectedTime, setSelectedTime] = useState('');
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formComplete, setFormComplete] = useState(false);
 
   // Get unique specialities
   const specialities = ['all', ...new Set(doctors.map(doctor => doctor.speciality))];
@@ -60,6 +62,15 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
     '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'
   ];
+
+  // Check if form is complete to enable button
+  React.useEffect(() => {
+    if (selectedDoctor && selectedDate && selectedTime) {
+      setFormComplete(true);
+    } else {
+      setFormComplete(false);
+    }
+  }, [selectedDoctor, selectedDate, selectedTime]);
 
   const handleBookAppointment = async () => {
     if (!user) {
@@ -136,121 +147,142 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>New Appointment</CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {/* Speciality Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Select Speciality</label>
-          <Select value={selectedSpeciality} onValueChange={setSelectedSpeciality}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a speciality" />
-            </SelectTrigger>
-            <SelectContent>
-              {specialities.map((speciality) => (
-                <SelectItem key={speciality} value={speciality}>
-                  {speciality === 'all' ? "All Specialities" : speciality}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>New Appointment</CardTitle>
+        </CardHeader>
         
-        {/* Doctor Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Select Doctor</label>
-          <Select 
-            value={selectedDoctor} 
-            onValueChange={onDoctorSelect}
-            disabled={filteredDoctors.length === 0}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a doctor" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredDoctors.map((doctor) => (
-                <SelectItem key={doctor.id} value={doctor.id}>
-                  {doctor.name} - {doctor.speciality}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Date Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Select Date</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => {
-                  // Disable past dates and weekends
-                  const day = date.getDay();
-                  return (
-                    date < new Date(new Date().setHours(0, 0, 0, 0)) ||
-                    day === 0 ||
-                    day === 6
-                  );
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        {/* Time Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Select Time</label>
-          <Select value={selectedTime} onValueChange={setSelectedTime}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a time slot" />
-            </SelectTrigger>
-            <SelectContent>
-              {timeSlots.map((time) => (
-                <SelectItem key={time} value={time}>
-                  {time}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Reason for Visit */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Reason for Visit</label>
-          <Input
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Briefly describe your symptoms or reason for visit"
-          />
-        </div>
-      </CardContent>
+        <CardContent className="space-y-6">
+          {/* Speciality Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Speciality</label>
+            <Select value={selectedSpeciality} onValueChange={setSelectedSpeciality}>
+              <SelectTrigger className="border-hospital-primary/30 focus:border-hospital-primary">
+                <SelectValue placeholder="Select a speciality" />
+              </SelectTrigger>
+              <SelectContent>
+                {specialities.map((speciality) => (
+                  <SelectItem key={speciality} value={speciality}>
+                    {speciality === 'all' ? "All Specialities" : speciality}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Doctor Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Doctor</label>
+            <Select 
+              value={selectedDoctor} 
+              onValueChange={onDoctorSelect}
+              disabled={filteredDoctors.length === 0}
+            >
+              <SelectTrigger className="border-hospital-primary/30 focus:border-hospital-primary">
+                <SelectValue placeholder="Select a doctor" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredDoctors.map((doctor) => (
+                  <SelectItem key={doctor.id} value={doctor.id}>
+                    {doctor.name} - {doctor.speciality}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Date Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Date</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={`w-full justify-start text-left font-normal ${
+                    selectedDate ? "border-hospital-primary/30" : ""
+                  }`}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => {
+                    // Disable past dates and weekends
+                    const day = date.getDay();
+                    return (
+                      date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                      day === 0 ||
+                      day === 6
+                    );
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          {/* Time Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Time</label>
+            <Select value={selectedTime} onValueChange={setSelectedTime}>
+              <SelectTrigger className="border-hospital-primary/30 focus:border-hospital-primary">
+                <SelectValue placeholder="Select a time slot" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map((time) => (
+                  <SelectItem key={time} value={time}>
+                    {time}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Reason for Visit */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Reason for Visit</label>
+            <Input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Briefly describe your symptoms or reason for visit"
+              className="border-hospital-primary/30 focus:border-hospital-primary"
+            />
+          </div>
+        </CardContent>
 
-      <CardFooter>
-        <Button 
-          className="w-full bg-hospital-primary hover:bg-hospital-secondary"
-          onClick={handleBookAppointment}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Booking...' : 'Book Appointment'}
-        </Button>
-      </CardFooter>
-    </Card>
+        <CardFooter>
+          <Button 
+            className={`w-full ${
+              formComplete 
+                ? "bg-gradient-to-r from-hospital-primary to-hospital-secondary hover:opacity-90" 
+                : "bg-muted text-muted-foreground cursor-not-allowed"
+            }`}
+            onClick={handleBookAppointment}
+            disabled={isSubmitting || !formComplete}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Booking...
+              </div>
+            ) : 'Book Appointment'}
+          </Button>
+        </CardFooter>
+      </Card>
+    </motion.div>
   );
 };
 
