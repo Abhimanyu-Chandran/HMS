@@ -9,6 +9,7 @@ import PatientDiagnoses from '@/components/patient/PatientDiagnoses';
 import PatientPrescriptions from '@/components/patient/PatientPrescriptions';
 import PatientAppointments from '@/components/patient/PatientAppointments';
 import PatientSummary from '@/components/patient/PatientSummary';
+import PatientProfile from '@/components/patient/PatientProfile';
 
 const Patient = () => {
   const { user } = useAuth();
@@ -21,13 +22,14 @@ const Patient = () => {
         <div className="mb-6">
           <h1 className="page-title">My Health Information</h1>
           <p className="text-muted-foreground">
-            View your diagnoses, prescriptions, and appointments.
+            View your profile, diagnoses, prescriptions, and appointments.
           </p>
         </div>
 
         <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="summary">Summary</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="diagnoses">Diagnoses</TabsTrigger>
             <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
@@ -35,6 +37,10 @@ const Patient = () => {
 
           <TabsContent value="summary">
             <PatientSummary userId={user?.id} />
+          </TabsContent>
+          
+          <TabsContent value="profile">
+            <PatientProfile />
           </TabsContent>
 
           <TabsContent value="diagnoses">

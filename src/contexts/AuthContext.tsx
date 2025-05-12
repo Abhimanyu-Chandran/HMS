@@ -1,12 +1,16 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 interface User {
   id: string;
   name: string;
   email: string;
   role: 'admin' | 'patient' | 'doctor';
+  age?: number;
+  diseases?: string[];
+  disorders?: string[];
 }
 
 interface AuthContextType {
@@ -14,8 +18,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, age?: number) => Promise<void>;
   logout: () => void;
+  updateUserProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,13 +30,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Check if user is already logged in
+  // Check if user is already logged in and fetch profile data
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    const checkSession = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        
+        // Try to fetch additional profile data from Supabase if available
+        try {
+          const { data: profileData, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', parsedUser.id)
+            .single();
+          
+          if (profileData && !error) {
+            // Merge the stored user data with the profile data from Supabase
+            setUser({
+              ...parsedUser,
+              age: profileData.age || undefined,
+              diseases: profileData.diseases || [],
+              disorders: profileData.disorders || []
+            });
+          } else {
+            setUser(parsedUser);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setUser(parsedUser);
+        }
+      }
+      setIsLoading(false);
+    };
+    
+    checkSession();
   }, []);
 
   // In a real application, this would connect to your backend
@@ -49,8 +82,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'admin@hospital.com',
           role: 'admin' as const
         };
+        
+        // Store in localStorage
         localStorage.setItem('user', JSON.stringify(adminUser));
         setUser(adminUser);
+        
+        // Store in Supabase (upsert to handle both new and returning users)
+        await supabase.from('user_profiles').upsert({
+          user_id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email,
+          role: adminUser.role,
+        }, { onConflict: 'user_id' });
+        
         toast({
           title: "Login successful",
           description: "Welcome back, Admin!",
@@ -63,8 +107,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: email,
           role: 'patient' as const
         };
+        
+        // Store in localStorage
         localStorage.setItem('user', JSON.stringify(regularUser));
-        setUser(regularUser);
+        
+        // Check if user already exists in Supabase
+        const { data: existingProfile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', regularUser.id)
+          .single();
+        
+        if (existingProfile) {
+          // User exists, update with any new profile data
+          setUser({
+            ...regularUser,
+            age: existingProfile.age || undefined,
+            diseases: existingProfile.diseases || [],
+            disorders: existingProfile.disorders || []
+          });
+        } else {
+          // New user, create profile
+          await supabase.from('user_profiles').insert({
+            user_id: regularUser.id,
+            name: regularUser.name,
+            email: regularUser.email,
+            role: regularUser.role,
+            age: null,
+            diseases: [],
+            disorders: []
+          });
+          
+          setUser(regularUser);
+        }
+        
         toast({
           title: "Login successful",
           description: `Welcome back, ${regularUser.name}!`,
@@ -84,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (name: string, email: string, password: string) => {
+  const signup = async (name: string, email: string, password: string, age?: number) => {
     setIsLoading(true);
     try {
       // Simulate API call
@@ -95,10 +171,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: Date.now().toString(), 
         name: name,
         email: email,
-        role: 'patient' as const
+        role: 'patient' as const,
+        age: age || undefined,
+        diseases: [],
+        disorders: []
       };
       
+      // Store in localStorage
       localStorage.setItem('user', JSON.stringify(newUser));
+      
+      // Store in Supabase
+      await supabase.from('user_profiles').insert({
+        user_id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        age: newUser.age || null,
+        diseases: [],
+        disorders: []
+      });
+      
       setUser(newUser);
       
       toast({
@@ -114,6 +206,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Signup error:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const updateUserProfile = async (data: Partial<User>) => {
+    if (!user) return;
+    
+    try {
+      const updatedUser = { ...user, ...data };
+      
+      // Update localStorage
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Update Supabase
+      await supabase.from('user_profiles').upsert({
+        user_id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        age: updatedUser.age || null,
+        diseases: updatedUser.diseases || [],
+        disorders: updatedUser.disorders || []
+      }, { onConflict: 'user_id' });
+      
+      setUser(updatedUser);
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: "There was a problem updating your profile.",
+      });
+      console.error('Profile update error:', error);
     }
   };
 
@@ -133,6 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     signup,
     logout,
+    updateUserProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

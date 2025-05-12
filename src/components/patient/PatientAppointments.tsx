@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 
 interface PatientAppointmentsProps {
   userId?: string;
@@ -40,6 +41,7 @@ const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -47,6 +49,7 @@ const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => 
       
       setLoading(true);
       try {
+        // Using userId to fetch appointments for the current user
         const { data, error } = await supabase
           .from('appointments')
           .select('*')
@@ -60,21 +63,32 @@ const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => 
           id: appointment.id,
           doctorName: appointment.doctor_name,
           speciality: appointment.speciality,
-          status: appointment.status as 'scheduled' | 'completed' | 'cancelled',
+          // Ensure the status is one of the allowed values
+          status: appointment.status === 'scheduled' || 
+                 appointment.status === 'completed' || 
+                 appointment.status === 'cancelled' 
+                 ? appointment.status as 'scheduled' | 'completed' | 'cancelled' 
+                 : 'scheduled',
           date: appointment.date,
           time: appointment.time,
         }));
         
         setAppointments(transformedAppointments);
+        console.log('Fetched appointments:', transformedAppointments);
       } catch (error) {
         console.error('Error fetching appointments:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to load appointments",
+          description: "Please try again later.",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchAppointments();
-  }, [userId]);
+  }, [userId, toast]);
 
   const navigateToBookAppointment = () => {
     navigate('/appointments');
@@ -101,7 +115,9 @@ const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => 
     <div>
       <div className="flex justify-between items-center mb-6">
         <CardTitle>Your Appointments</CardTitle>
-        <Button onClick={navigateToBookAppointment}>Book New Appointment</Button>
+        <Button onClick={navigateToBookAppointment} className="bg-hospital-primary hover:bg-hospital-secondary">
+          Book New Appointment
+        </Button>
       </div>
 
       {appointments.length > 0 ? (
@@ -117,7 +133,7 @@ const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => 
             <p className="text-muted-foreground mb-6">
               You don't have any appointments scheduled.
             </p>
-            <Button onClick={navigateToBookAppointment}>
+            <Button onClick={navigateToBookAppointment} className="bg-hospital-primary hover:bg-hospital-secondary">
               Book an Appointment
             </Button>
           </CardContent>

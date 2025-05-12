@@ -17,8 +17,8 @@
     --primary: 260 75% 74%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 198 93% 60%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 335 77% 70%;
+    --secondary-foreground: 0 0% 98%;
 
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
@@ -58,7 +58,7 @@
     --primary: 260 75% 74%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 198 93% 60%;
+    --secondary: 335 77% 70%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 240 3.7% 15.9%;
@@ -112,16 +112,16 @@
 }
 
 .section-title {
-  @apply text-2xl font-semibold text-secondary mb-4;
+  @apply text-2xl font-semibold text-hospital-secondary mb-4;
 }
 
 /* Gradient text effects */
 .gradient-text-primary {
-  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-hospital-primary to-hospital-secondary bg-clip-text text-transparent;
 }
 
 .gradient-text-accent {
-  @apply bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-hospital-primary to-hospital-accent bg-clip-text text-transparent;
 }
 
 /* Button gradients */
@@ -130,7 +130,7 @@
 }
 
 .gradient-button::before {
-  @apply content-[''] absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 transition-opacity duration-300;
+  @apply content-[''] absolute inset-0 bg-gradient-to-r from-hospital-primary via-hospital-secondary to-hospital-accent opacity-0 transition-opacity duration-300;
 }
 
 .gradient-button:hover::before {
@@ -148,6 +148,5 @@
 
 /* Icon background */
 .icon-bg {
-  @apply w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 mb-4;
+  @apply w-16 h-16 flex items-center justify-center rounded-full bg-hospital-primary/10 mb-4;
 }
-

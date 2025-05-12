@@ -26,6 +26,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { doctors } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AppointmentFormProps {
   user: any;
@@ -44,6 +45,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('');
   const [reason, setReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get unique specialities
   const specialities = ['all', ...new Set(doctors.map(doctor => doctor.speciality))];
@@ -59,8 +61,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'
   ];
 
-  const handleBookAppointment = () => {
+  const handleBookAppointment = async () => {
     if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication required",
+        description: "Please log in to book an appointment.",
+      });
       return;
     }
 
@@ -74,18 +81,58 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     }
 
     const selectedDoctorDetails = doctors.find(d => d.id === selectedDoctor);
+    if (!selectedDoctorDetails) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Selected doctor not found.",
+      });
+      return;
+    }
     
-    toast({
-      title: "Appointment Booked",
-      description: `Your appointment with ${selectedDoctorDetails?.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been scheduled.`,
-    });
+    setIsSubmitting(true);
+    
+    try {
+      // Format the date as ISO string but only take the date part
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      
+      // Save appointment to the database
+      const { data, error } = await supabase.from('appointments').insert({
+        patient_id: user.id,
+        doctor_id: selectedDoctorDetails.id,
+        doctor_name: selectedDoctorDetails.name,
+        speciality: selectedDoctorDetails.speciality,
+        date: formattedDate,
+        time: selectedTime,
+        status: 'scheduled',
+        notes: reason || null
+      });
 
-    // Reset form
-    onDoctorSelect('');
-    setSelectedSpeciality('');
-    setSelectedDate(undefined);
-    setSelectedTime('');
-    setReason('');
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Appointment Booked",
+        description: `Your appointment with ${selectedDoctorDetails.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been scheduled.`,
+      });
+  
+      // Reset form
+      onDoctorSelect('');
+      setSelectedSpeciality('');
+      setSelectedDate(undefined);
+      setSelectedTime('');
+      setReason('');
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      toast({
+        variant: "destructive",
+        title: "Booking failed",
+        description: "There was a problem booking your appointment. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -196,10 +243,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
       <CardFooter>
         <Button 
-          className="w-full"
+          className="w-full bg-hospital-primary hover:bg-hospital-secondary"
           onClick={handleBookAppointment}
+          disabled={isSubmitting}
         >
-          Book Appointment
+          {isSubmitting ? 'Booking...' : 'Book Appointment'}
         </Button>
       </CardFooter>
     </Card>

@@ -65,13 +65,16 @@ export default {
 				},
 				hospital: {
 					'primary': '#9b87f5',
-					'secondary': '#52CEF5',
-					'accent': '#F46B9B',
-					'soft-blue': '#D3E4FD',
-					'bright-blue': '#1EAEDB',
+					'secondary': '#F46B9B',
+					'accent': '#D946EF',
+					'soft-violet': '#E5DEFF',
+					'bright-violet': '#8B5CF6',
 					'neutral': '#8E9196',
 					'dark': '#1A1F2C',
-					'danger': '#ea384c'
+					'danger': '#ea384c',
+					'soft-pink': '#FFDEE2',
+					'magenta': '#D946EF',
+					'vivid-violet': '#8B5CF6'
 				}
 			},
 			backgroundImage: {
