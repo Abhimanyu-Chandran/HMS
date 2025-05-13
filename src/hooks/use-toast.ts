@@ -1,9 +1,6 @@
 
 // Export from shadcn/ui toast.tsx
 import { Toast, ToastActionElement, ToastProps } from "@/components/ui/toast"
-import {
-  useToast as useToastOriginal,
-} from "@radix-ui/react-toast"
 
 type ToastOptions = Omit<ToastProps, "id"> & {
   description?: React.ReactNode

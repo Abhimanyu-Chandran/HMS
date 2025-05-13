@@ -47,7 +47,10 @@ export const medicines: Medicine[] = [
     description: "Pain reliever and fever reducer",
     price: 5.99,
     category: "Pain Relief",
-    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1-2 tablets every 4-6 hours",
+    side_effects: "Rarely causes side effects when taken as directed",
+    storage: "Store at room temperature"
   },
   {
     id: "2",
@@ -55,7 +58,10 @@ export const medicines: Medicine[] = [
     description: "Antibiotic used to treat bacterial infections",
     price: 12.99,
     category: "Antibiotics",
-    image: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1 capsule three times daily",
+    side_effects: "Diarrhea, nausea, skin rash",
+    storage: "Store at room temperature"
   },
   {
     id: "3",
@@ -63,7 +69,10 @@ export const medicines: Medicine[] = [
     description: "Used to treat high blood pressure",
     price: 8.49,
     category: "Blood Pressure",
-    image: "https://images.unsplash.com/photo-1550572017-4fcdbb59cc32?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1550572017-4fcdbb59cc32?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1 tablet daily",
+    side_effects: "Dry cough, dizziness, headache",
+    storage: "Store in a cool, dry place"
   },
   {
     id: "4",
@@ -71,7 +80,10 @@ export const medicines: Medicine[] = [
     description: "Used to treat heartburn and reflux disease",
     price: 7.99,
     category: "Digestive Health",
-    image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1 capsule daily before breakfast",
+    side_effects: "Headache, abdominal pain, nausea",
+    storage: "Store at room temperature"
   },
   {
     id: "5",
@@ -79,7 +91,10 @@ export const medicines: Medicine[] = [
     description: "Used to treat type 2 diabetes",
     price: 9.99,
     category: "Diabetes",
-    image: "https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1 tablet twice daily with meals",
+    side_effects: "Nausea, diarrhea, stomach discomfort",
+    storage: "Store at room temperature"
   },
   {
     id: "6",
@@ -87,7 +102,10 @@ export const medicines: Medicine[] = [
     description: "Used to lower cholesterol",
     price: 14.99,
     category: "Cholesterol",
-    image: "https://images.unsplash.com/photo-1585435557343-3b348a942da2?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1585435557343-3b348a942da2?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1 tablet daily in the evening",
+    side_effects: "Muscle pain, weakness, digestive issues",
+    storage: "Store in a cool, dry place"
   },
   {
     id: "7",
@@ -95,7 +113,10 @@ export const medicines: Medicine[] = [
     description: "Used to treat asthma and COPD",
     price: 24.99,
     category: "Respiratory",
-    image: "https://images.unsplash.com/photo-1616279969760-d27104b6929e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1616279969760-d27104b6929e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1-2 puffs every 4-6 hours as needed",
+    side_effects: "Nervousness, tremor, headache",
+    storage: "Keep away from heat and direct light"
   },
   {
     id: "8",
@@ -103,7 +124,10 @@ export const medicines: Medicine[] = [
     description: "Antihistamine for allergy relief",
     price: 6.99,
     category: "Allergy",
-    image: "https://images.unsplash.com/photo-1559142642-372cc9238a5b?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+    image: "https://images.unsplash.com/photo-1559142642-372cc9238a5b?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+    dosage: "1 tablet daily",
+    side_effects: "Headache, drowsiness, dry mouth",
+    storage: "Store at room temperature"
   }
 ];
 
