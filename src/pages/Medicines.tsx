@@ -182,13 +182,7 @@ const Medicines = () => {
                   <CardFooter className="p-4 pt-0">
                     <Button 
                       className="w-full bg-gradient-to-r from-hospital-primary to-hospital-secondary hover:opacity-90"
-                      onClick={() => {
-                        addToCart(medicine);
-                        toast({
-                          title: "Added to cart",
-                          description: `${medicine.name} has been added to your cart.`,
-                        });
-                      }}
+                      onClick={() => addToCart(medicine)}
                     >
                       <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                     </Button>

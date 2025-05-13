@@ -1,13 +1,10 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { Medicine as MedicineFromHook } from "@/hooks/useMedicines";
 
-export interface Medicine {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
+// Extend the Medicine type from the hook to include the image property
+export interface Medicine extends Omit<MedicineFromHook, 'image_url'> {
   image: string;
 }
 
@@ -17,7 +14,7 @@ interface CartItem extends Medicine {
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (medicine: Medicine, quantity?: number) => void;
+  addToCart: (medicine: MedicineFromHook | Medicine, quantity?: number) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -48,24 +45,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (medicine: Medicine, quantity = 1) => {
+  const addToCart = (medicine: MedicineFromHook | Medicine, quantity = 1) => {
     setItems(prevItems => {
       const existingItemIndex = prevItems.findIndex(item => item.id === medicine.id);
+      
+      // Convert from MedicineFromHook to Medicine if needed
+      const processedMedicine: Medicine = 'image_url' in medicine 
+        ? { 
+            ...medicine, 
+            image: medicine.image_url || "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=800&auto=format&fit=crop"
+          }
+        : medicine as Medicine;
       
       if (existingItemIndex >= 0) {
         const updatedItems = [...prevItems];
         updatedItems[existingItemIndex].quantity += quantity;
         toast({
           title: "Cart updated",
-          description: `Added another ${medicine.name} to your cart.`,
+          description: `Added another ${processedMedicine.name} to your cart.`,
         });
         return updatedItems;
       } else {
         toast({
           title: "Added to cart",
-          description: `${medicine.name} has been added to your cart.`,
+          description: `${processedMedicine.name} has been added to your cart.`,
         });
-        return [...prevItems, { ...medicine, quantity }];
+        return [...prevItems, { ...processedMedicine, quantity }];
       }
     });
   };
