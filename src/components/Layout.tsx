@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,7 +13,8 @@ import {
   Calendar,
   Star,
   Users,
-  FileText
+  FileText,
+  HeartPulse
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -70,12 +72,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Header */}
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
-          {/* Logo */}
+          {/* Modern Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-hospital-primary rounded-full w-8 h-8 flex items-center justify-center">
-              <span className="text-white font-bold">H</span>
+            <div className="bg-gradient-to-r from-hospital-primary to-hospital-secondary rounded-full w-9 h-9 flex items-center justify-center shadow-md">
+              <HeartPulse className="h-5 w-5 text-white" />
             </div>
-            <span className="font-bold text-xl">HealthCare</span>
+            <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-hospital-primary to-hospital-secondary">MediCare</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -214,7 +216,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="container py-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">HealthCare</h3>
+              <h3 className="text-lg font-semibold mb-4">MediCare</h3>
               <p className="text-gray-300">
                 Providing quality healthcare services for all your medical needs.
               </p>
@@ -238,7 +240,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-gray-700 text-center text-gray-300">
-            <p>&copy; {new Date().getFullYear()} HealthCare. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} MediCare. All rights reserved.</p>
           </div>
         </div>
       </footer>

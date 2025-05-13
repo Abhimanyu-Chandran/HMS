@@ -44,14 +44,14 @@ const Medicines = () => {
     }
   };
 
-  // Custom medicine images
+  // Updated medicine images with proper medical/pharmaceutical photos
   const medicineImages = {
-    "Pain Relief": "https://img.freepik.com/free-photo/pills-blue-background-close-up_23-2148551423.jpg",
-    "Antibiotics": "https://img.freepik.com/free-photo/pills-blue-background-close-up_23-2148551414.jpg",
-    "Antiviral": "https://img.freepik.com/free-photo/antibiotics-pharmacy_1339-2254.jpg",
-    "Anti-inflammatory": "https://img.freepik.com/free-photo/close-up-view-drug-pills_23-2150380678.jpg",
-    "Cardiac": "https://img.freepik.com/free-photo/red-white-pills-heart-shape_1150-18330.jpg",
-    "default": "https://img.freepik.com/free-photo/pharmacist-s-hand-taking-medicine-box-from-shelf-drug-store_1150-26522.jpg"
+    "Pain Relief": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop",
+    "Antibiotics": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?q=80&w=800&auto=format&fit=crop",
+    "Antiviral": "https://images.unsplash.com/photo-1585435557343-3b348fabf4a7?q=80&w=800&auto=format&fit=crop",
+    "Anti-inflammatory": "https://images.unsplash.com/photo-1550572017-4fcdbb59cd5f?q=80&w=800&auto=format&fit=crop",
+    "Cardiac": "https://images.unsplash.com/photo-1628771065518-0d82f1938462?q=80&w=800&auto=format&fit=crop",
+    "default": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=800&auto=format&fit=crop"
   };
   
   const getMedicineImage = (category: string) => {

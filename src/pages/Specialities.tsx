@@ -42,15 +42,15 @@ const Specialities = () => {
     show: { opacity: 1, y: 0 }
   };
 
-  // Custom specialty images for each specialty
+  // Updated specialty images with high-quality, professional medical images
   const specialtyImages = {
-    "Cardiology": "https://img.freepik.com/free-photo/doctor-examining-patient-heart-close-up_23-2149191322.jpg",
-    "Neurology": "https://img.freepik.com/free-photo/doctor-holding-brain-model_23-2148968169.jpg",
-    "Orthopedics": "https://img.freepik.com/free-photo/physiotherapist-massaging-patient-s-arm_1170-2162.jpg",
-    "Dermatology": "https://img.freepik.com/free-photo/dermatologist-checking-patient-s-skin-problems_23-2149217465.jpg",
-    "Pediatrics": "https://img.freepik.com/free-photo/doctor-child-patient-hospital-medical-examination_1303-25892.jpg",
-    "ENT": "https://img.freepik.com/free-photo/doctor-examining-young-patient-s-ear-with-otoscope_1170-2390.jpg",
-    "default": "https://img.freepik.com/free-photo/medium-shot-doctor-holding-clipboard_23-2148868142.jpg"
+    "Cardiology": "https://images.unsplash.com/photo-1579154341098-e4e158cc7f53?q=80&w=800&auto=format&fit=crop",
+    "Neurology": "https://images.unsplash.com/photo-1559757175-5700dde675bc?q=80&w=800&auto=format&fit=crop",
+    "Orthopedics": "https://images.unsplash.com/photo-1571772805064-207c8435df79?q=80&w=800&auto=format&fit=crop",
+    "Dermatology": "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=800&auto=format&fit=crop",
+    "Pediatrics": "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=800&auto=format&fit=crop",
+    "ENT": "https://images.unsplash.com/photo-1609643242070-c69379b441b0?q=80&w=800&auto=format&fit=crop",
+    "default": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop"
   };
 
   const getSpecialtyImage = (specialty: string) => {
