@@ -84,6 +84,48 @@ export type Database = {
         }
         Relationships: []
       }
+      medicines: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          dosage: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          side_effects: string | null
+          storage: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          dosage?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+          side_effects?: string | null
+          storage?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          dosage?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          side_effects?: string | null
+          storage?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prescriptions: {
         Row: {
           created_at: string
@@ -127,6 +169,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      specialities: {
+        Row: {
+          created_at: string
+          description: string
+          doctor_count: number
+          id: string
+          image_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          doctor_count?: number
+          id?: string
+          image_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          doctor_count?: number
+          id?: string
+          image_url?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_profiles: {
         Row: {

@@ -13,15 +13,19 @@ import {
 } from "@/components/ui/select";
 import Layout from '@/components/Layout';
 import { useCart } from '@/contexts/CartContext';
-import { medicines } from '@/data/mockData';
-import { ShoppingCart, Search, Filter, Info } from 'lucide-react';
+import { ShoppingCart, Search, Filter, Info, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useMedicines, Medicine } from '@/hooks/useMedicines';
+import { toast } from "@/hooks/use-toast";
 
 const Medicines = () => {
   const { addToCart } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [expandedMedicine, setExpandedMedicine] = useState<string | null>(null);
+  
+  // Fetch medicines from Supabase
+  const { data: medicines = [], isLoading, isError } = useMedicines();
   
   // Get unique categories
   const categories = ['all', ...new Set(medicines.map(medicine => medicine.category))];
@@ -43,20 +47,9 @@ const Medicines = () => {
       setExpandedMedicine(medicineId);
     }
   };
-
-  // Updated medicine images with proper medical/pharmaceutical photos
-  const medicineImages = {
-    "Pain Relief": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop",
-    "Antibiotics": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?q=80&w=800&auto=format&fit=crop",
-    "Antiviral": "https://images.unsplash.com/photo-1585435557343-3b348fabf4a7?q=80&w=800&auto=format&fit=crop",
-    "Anti-inflammatory": "https://images.unsplash.com/photo-1550572017-4fcdbb59cd5f?q=80&w=800&auto=format&fit=crop",
-    "Cardiac": "https://images.unsplash.com/photo-1628771065518-0d82f1938462?q=80&w=800&auto=format&fit=crop",
-    "default": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=800&auto=format&fit=crop"
-  };
   
-  const getMedicineImage = (category: string) => {
-    // @ts-ignore
-    return medicineImages[category] || medicineImages.default;
+  const getMedicineImage = (medicine: Medicine) => {
+    return medicine.image_url || "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=800&auto=format&fit=crop";
   };
 
   const container = {
@@ -117,93 +110,102 @@ const Medicines = () => {
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-hospital-primary" />
+          <p className="ml-2 text-lg">Loading medicines...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {isError && (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-medium text-red-500 mb-2">Failed to load medicines</h3>
+          <p className="text-muted-foreground mb-4">
+            There was a problem fetching the medicines data. Please try again later.
+          </p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      )}
+
       {/* Medicine Cards */}
-      <motion.div 
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-        variants={container}
-        initial="hidden"
-        animate="show"
-      >
-        {filteredMedicines.length > 0 ? (
-          filteredMedicines.map((medicine) => (
-            <motion.div key={medicine.id} variants={item}>
-              <Card className="flex flex-col h-full hover:shadow-lg transition-all">
-                <div 
-                  className="h-48 w-full bg-cover bg-center" 
-                  style={{ backgroundImage: `url(${getMedicineImage(medicine.category)})` }} 
-                />
-                <CardContent className="p-4 flex-grow">
-                  <Badge className="mb-2 bg-hospital-primary">{medicine.category}</Badge>
-                  <h3 className="text-lg font-semibold mb-1">{medicine.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{medicine.description}</p>
-                  
-                  <button
-                    onClick={() => handleMedicineClick(medicine.id)}
-                    className="text-hospital-primary text-sm flex items-center hover:underline mb-4"
-                  >
-                    <Info className="h-4 w-4 mr-1" />
-                    {expandedMedicine === medicine.id ? 'Show less' : 'More details'}
-                  </button>
-                  
-                  {expandedMedicine === medicine.id && (
-                    <motion.div 
-                      className="text-sm space-y-2 border-t border-muted pt-3 mb-4"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      transition={{ duration: 0.3 }}
+      {!isLoading && !isError && (
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
+          {filteredMedicines.length > 0 ? (
+            filteredMedicines.map((medicine) => (
+              <motion.div key={medicine.id} variants={item}>
+                <Card className="flex flex-col h-full hover:shadow-lg transition-all">
+                  <div 
+                    className="h-48 w-full bg-cover bg-center" 
+                    style={{ backgroundImage: `url(${getMedicineImage(medicine)})` }} 
+                  />
+                  <CardContent className="p-4 flex-grow">
+                    <Badge className="mb-2 bg-hospital-primary">{medicine.category}</Badge>
+                    <h3 className="text-lg font-semibold mb-1">{medicine.name}</h3>
+                    <p className="text-sm text-gray-500 mb-4">{medicine.description}</p>
+                    
+                    <button
+                      onClick={() => handleMedicineClick(medicine.id)}
+                      className="text-hospital-primary text-sm flex items-center hover:underline mb-4"
                     >
-                      <div>
-                        <span className="font-medium">Dosage:</span> {medicine.category === "Pain Relief" ? "1-2 tablets every 4-6 hours" : 
-                                     medicine.category === "Antibiotics" ? "1 tablet every 12 hours" :
-                                     medicine.category === "Antiviral" ? "1 tablet daily" : 
-                                     "As directed by physician"}
-                      </div>
-                      <div>
-                        <span className="font-medium">Side Effects:</span> {medicine.category === "Pain Relief" ? "Drowsiness, upset stomach" : 
-                                     medicine.category === "Antibiotics" ? "Diarrhea, nausea" :
-                                     medicine.category === "Cardiac" ? "Dizziness, headache" : 
-                                     "See package insert"}
-                      </div>
-                      <div>
-                        <span className="font-medium">Storage:</span> Store at room temperature away from moisture and heat.
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  <p className="text-lg font-bold text-hospital-primary">${medicine.price.toFixed(2)}</p>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Button 
-                    className="w-full bg-gradient-to-r from-hospital-primary to-hospital-secondary hover:opacity-90"
-                    onClick={() => {
-                      addToCart(medicine);
-                      const toast = document.querySelector('.toast-container') as HTMLElement;
-                      if (toast) {
-                        toast.classList.add('active');
-                        setTimeout(() => toast.classList.remove('active'), 3000);
-                      }
-                    }}
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                  </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <h3 className="text-xl font-medium mb-2">No medicines found</h3>
-            <p className="text-muted-foreground">
-              Try changing your search term or filter.
-            </p>
-          </div>
-        )}
-      </motion.div>
-      
-      {/* Toast notification */}
-      <div className="fixed bottom-4 right-4 bg-hospital-primary text-white p-4 rounded-md shadow-lg transform translate-y-full transition-transform duration-300 toast-container">
-        Item added to cart!
-      </div>
+                      <Info className="h-4 w-4 mr-1" />
+                      {expandedMedicine === medicine.id ? 'Show less' : 'More details'}
+                    </button>
+                    
+                    {expandedMedicine === medicine.id && (
+                      <motion.div 
+                        className="text-sm space-y-2 border-t border-muted pt-3 mb-4"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div>
+                          <span className="font-medium">Dosage:</span> {medicine.dosage || "As directed by physician"}
+                        </div>
+                        <div>
+                          <span className="font-medium">Side Effects:</span> {medicine.side_effects || "See package insert"}
+                        </div>
+                        <div>
+                          <span className="font-medium">Storage:</span> {medicine.storage || "Store at room temperature away from moisture and heat"}
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    <p className="text-lg font-bold text-hospital-primary">${medicine.price.toFixed(2)}</p>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-hospital-primary to-hospital-secondary hover:opacity-90"
+                      onClick={() => {
+                        addToCart(medicine);
+                        toast({
+                          title: "Added to cart",
+                          description: `${medicine.name} has been added to your cart.`,
+                        });
+                      }}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <h3 className="text-xl font-medium mb-2">No medicines found</h3>
+              <p className="text-muted-foreground">
+                Try changing your search term or filter.
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
     </Layout>
   );
 };
