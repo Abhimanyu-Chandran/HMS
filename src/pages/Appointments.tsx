@@ -1,26 +1,32 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// useNavigate is not used here anymore, can be removed if not needed for other future functionality
+// import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuth } from '@/contexts/AuthContext';
+// useAuth is used by child components, not directly here unless needed for conditional rendering
+// import { useAuth } from '@/contexts/AuthContext'; 
 import AppointmentForm from '@/components/appointments/AppointmentForm';
 import DoctorInfo from '@/components/appointments/DoctorInfo';
 import AppointmentList from '@/components/appointments/AppointmentList';
 
 const Appointments = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [selectedDoctor, setSelectedDoctor] = useState('');
+  // const { user } = useAuth(); // Not directly needed here anymore
+  // const navigate = useNavigate(); // Not used
+  const [selectedDoctor, setSelectedDoctor] = useState(''); // UUID of the doctor
 
-  // Function to navigate to booking tab
+  // Function to navigate to booking tab by simulating a click
   const navigateToBooking = () => {
-    const bookTabElement = document.querySelector('button[value="book"]');
-    if (bookTabElement) {
-      (bookTabElement as HTMLButtonElement).click();
+    // Query for the button element that acts as the tab trigger
+    const bookTabTrigger = document.querySelector('button[data-state][role="tab"][value="book"]');
+    if (bookTabTrigger instanceof HTMLElement) {
+      bookTabTrigger.click(); // Simulate click to switch tab
+    } else {
+      console.warn("Could not find 'Book Appointment' tab trigger to click.");
     }
   };
+
 
   return (
     <ProtectedRoute>
@@ -42,7 +48,7 @@ const Appointments = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
                 <AppointmentForm 
-                  user={user} 
+                  // user prop removed
                   selectedDoctor={selectedDoctor}
                   onDoctorSelect={setSelectedDoctor}
                 />
@@ -56,7 +62,7 @@ const Appointments = () => {
 
           <TabsContent value="manage">
             <AppointmentList 
-              userId={user?.id} 
+              // userId prop removed
               navigateToBooking={navigateToBooking} 
             />
           </TabsContent>
