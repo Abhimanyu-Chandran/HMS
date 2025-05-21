@@ -50,7 +50,7 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ userId }) => {
 
         <TabsContent value="prescriptions">
           <PatientPrescriptions userId={userId} />
-        </TabsContent
+        </TabsContent> 
 
         <TabsContent value="appointments">
           <PatientAppointments userId={userId} />
@@ -61,3 +61,4 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ userId }) => {
 };
 
 export default PatientTabs;
+
