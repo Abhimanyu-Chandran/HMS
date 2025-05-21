@@ -1,4 +1,4 @@
-# Welcome to our HMS project
+# Welcome to your Lovable project
 
 ## Project info
 

@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -30,12 +31,9 @@ const Login = () => {
     
     try {
       await login(email, password);
-      // Navigation will be handled by onAuthStateChange or if login resolves successfully
-      // navigate('/'); // Potentially redundant if AuthContext handles navigation
+      navigate('/');
     } catch (error) {
-      // Error is typically handled within the login function (e.g., by showing a toast)
-      // If login re-throws or returns an error object, handle it here if needed
-      console.error("Login page error:", error);
+      // Error is handled in the login function
     } finally {
       setIsSubmitting(false);
     }
@@ -98,9 +96,9 @@ const Login = () => {
           </p>
           
           <div className="mt-4 text-sm text-gray-500">
-            <p>Demo accounts (requires signup):</p>
+            <p>Demo accounts:</p>
             <p><strong>Admin:</strong> admin@hospital.com / admin123</p>
-            <p><strong>Patient:</strong> Use any other valid email / password</p>
+            <p><strong>Patient:</strong> any email / any password</p>
           </div>
         </div>
       </div>
