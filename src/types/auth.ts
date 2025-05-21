@@ -4,7 +4,7 @@ import { Session as SupabaseSession, User as SupabaseUser } from '@supabase/supa
 // User profile data type
 export interface UserProfileData {
   name: string;
-  email: string;
+  email: string; // Email is required in our user profile
   role: 'admin' | 'patient' | 'doctor';
   age?: number;
   diseases?: string[];
@@ -12,7 +12,11 @@ export interface UserProfileData {
 }
 
 // Extended user type that combines Supabase User with profile data
-export interface ExtendedUser extends SupabaseUser, UserProfileData {}
+// We Omit 'email' from SupabaseUser to use the 'email: string' from UserProfileData, resolving the conflict.
+export interface ExtendedUser extends Omit<SupabaseUser, 'email' | 'role'>, UserProfileData {
+  // Inherits 'id', 'aud', 'created_at', etc., from SupabaseUser (excluding 'email' and 'role')
+  // Inherits 'name', 'email', 'role', 'age', 'diseases', 'disorders' from UserProfileData
+}
 
 // Auth context type
 export interface AuthContextType {
@@ -25,3 +29,4 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   updateUserProfile: (data: Partial<UserProfileData>) => Promise<void>;
 }
+
