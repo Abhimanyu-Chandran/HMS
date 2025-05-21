@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -21,7 +20,6 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Form validation
     if (!name || !email || !password || !confirmPassword) {
       toast({
         variant: "destructive",
@@ -44,9 +42,11 @@ const Signup = () => {
     
     try {
       await signup(name, email, password, age ? Number(age) : undefined);
-      navigate('/');
+      // Navigation will be handled by onAuthStateChange or if signup resolves successfully
+      // navigate('/'); // Potentially redundant
     } catch (error) {
-      // Error is handled in the signup function
+      // Error is typically handled within the signup function
+      console.error("Signup page error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -87,7 +87,7 @@ const Signup = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="age">Age</Label>
+            <Label htmlFor="age">Age (Optional)</Label>
             <Input 
               id="age" 
               type="number" 
@@ -102,7 +102,7 @@ const Signup = () => {
             <Input 
               id="password" 
               type="password" 
-              placeholder="Create a password" 
+              placeholder="Create a password (min. 6 characters)" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)}
             />

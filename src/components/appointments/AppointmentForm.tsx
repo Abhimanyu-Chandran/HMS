@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,13 +23,13 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from "@/hooks/use-toast"; // Changed import path
 import { doctors } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 
 interface AppointmentFormProps {
-  user: any;
+  user: any; // Consider defining a more specific User type from AuthContext
   selectedDoctor: string;
   onDoctorSelect: (doctorId: string) => void;
 }
@@ -73,7 +72,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   }, [selectedDoctor, selectedDate, selectedTime]);
 
   const handleBookAppointment = async () => {
-    if (!user) {
+    if (!user || !user.id) { // Check for user.id as it's critical
       toast({
         variant: "destructive",
         title: "Authentication required",
@@ -104,12 +103,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Format the date as ISO string but only take the date part
       const formattedDate = selectedDate.toISOString().split('T')[0];
       
-      // Save appointment to the database
-      const { data, error } = await supabase.from('appointments').insert({
-        patient_id: user.id,
+      const { error } = await supabase.from('appointments').insert({
+        patient_id: user.id, // Ensure user.id is the Supabase UUID
         doctor_id: selectedDoctorDetails.id,
         doctor_name: selectedDoctorDetails.name,
         speciality: selectedDoctorDetails.speciality,
@@ -120,6 +117,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       });
 
       if (error) {
+        console.error('Supabase error booking appointment:', error);
         throw error;
       }
       
@@ -128,7 +126,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         description: `Your appointment with ${selectedDoctorDetails.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been scheduled.`,
       });
   
-      // Reset form
       onDoctorSelect('');
       setSelectedSpeciality('');
       setSelectedDate(undefined);
@@ -217,7 +214,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={(date) => {
-                    // Disable past dates and weekends
                     const day = date.getDay();
                     return (
                       date < new Date(new Date().setHours(0, 0, 0, 0)) ||
