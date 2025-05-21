@@ -1,10 +1,11 @@
 
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserProfileData } from '@/types/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'patient' | 'doctor';
+  requiredRole?: UserProfileData['role'];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 

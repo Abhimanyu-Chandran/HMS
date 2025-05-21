@@ -1,61 +1,48 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session as SupabaseSession, User as SupabaseUser } from '@supabase/supabase-js';
-import { useToast } from "@/hooks/use-toast"; // Changed import path
+import { Session as SupabaseSession } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { AuthContextType, ExtendedUser, UserProfileData } from '@/types/auth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
-// Combined User type for app state (Supabase Auth user + profile data)
-interface UserProfileData {
-  name: string;
-  email: string;
-  role: 'admin' | 'patient' | 'doctor';
-  age?: number;
-  diseases?: string[];
-  disorders?: string[];
-}
-
-interface User extends SupabaseUser, UserProfileData {}
-
-interface AuthContextType {
-  user: User | null;
-  session: SupabaseSession | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, age?: number) => Promise<void>;
-  logout: () => Promise<void>; // Made async for consistency
-  updateUserProfile: (data: Partial<UserProfileData>) => Promise<void>;
-}
-
+// Create the auth context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<SupabaseSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
+  const { fetchUserProfile, updateUserProfile } = useUserProfile();
 
   useEffect(() => {
     setIsLoading(true);
+    
+    // Get the initial session
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
       setSession(currentSession);
       if (currentSession?.user) {
-        await fetchAndSetUserProfile(currentSession.user);
+        const userWithProfile = await fetchUserProfile(currentSession.user);
+        setUser(userWithProfile);
       }
       setIsLoading(false);
     });
 
+    // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, currentSession) => {
         setSession(currentSession);
         if (currentSession?.user) {
           if (_event === 'SIGNED_IN') {
-            await fetchAndSetUserProfile(currentSession.user);
+            const userWithProfile = await fetchUserProfile(currentSession.user);
+            setUser(userWithProfile);
             navigate('/'); // Navigate to home on successful sign-in
           } else if (_event === 'USER_UPDATED') {
-            await fetchAndSetUserProfile(currentSession.user);
+            const userWithProfile = await fetchUserProfile(currentSession.user);
+            setUser(userWithProfile);
           }
         } else {
           setUser(null);
@@ -63,65 +50,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             navigate('/login'); // Navigate to login on sign-out
           }
         }
-        // setIsLoading(false); // Handled by initial getSession
       }
     );
 
     return () => {
       subscription?.unsubscribe();
     };
-  }, [navigate]); // Added navigate to dependencies
-
-  const fetchAndSetUserProfile = async (supabaseUser: SupabaseUser) => {
-    try {
-      const { data: profileData, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', supabaseUser.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116: 0 rows
-        console.error('Error fetching user profile:', error);
-        toast({ variant: "destructive", title: "Profile Error", description: "Could not fetch user profile." });
-        setUser(mapSupabaseUserToAppUser(supabaseUser)); // Fallback to basic user
-        return;
-      }
-      
-      if (profileData) {
-        setUser({
-          ...supabaseUser, // Supabase user props (id, email, etc.)
-          name: profileData.name,
-          role: profileData.role as UserProfileData['role'],
-          age: profileData.age,
-          diseases: profileData.diseases,
-          disorders: profileData.disorders,
-        });
-      } else {
-         // Profile doesn't exist, this can happen if a user exists in auth.users but not user_profiles
-         // Potentially create a default profile here or handle as an edge case
-        console.warn(`Profile not found for user ${supabaseUser.id}. Setting basic user data.`);
-        setUser(mapSupabaseUserToAppUser(supabaseUser, { name: supabaseUser.email?.split('@')[0] || 'User', role: 'patient'}));
-      }
-    } catch (e) {
-      console.error('Exception fetching user profile:', e);
-      toast({ variant: "destructive", title: "Profile Error", description: "An unexpected error occurred." });
-      setUser(mapSupabaseUserToAppUser(supabaseUser));
-    }
-  };
-  
-  // Helper to map SupabaseUser to our app's User type, with optional profile defaults
-  const mapSupabaseUserToAppUser = (supabaseUser: SupabaseUser, defaults?: Partial<UserProfileData>): User => {
-    return {
-      ...supabaseUser,
-      name: defaults?.name || supabaseUser.email?.split('@')[0] || 'New User',
-      email: supabaseUser.email || '', // SupabaseUser email is optional
-      role: defaults?.role || 'patient',
-      age: defaults?.age,
-      diseases: defaults?.diseases || [],
-      disorders: defaults?.disorders || [],
-    };
-  };
-
+  }, [navigate, fetchUserProfile]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -169,8 +104,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const role: UserProfileData['role'] = email === 'admin@hospital.com' ? 'admin' : 'patient';
 
       // Insert into user_profiles table
-      // A trigger on auth.users is a more robust way to handle this (see Supabase docs)
-      // but explicit insert is also common.
       const { error: profileError } = await supabase.from('user_profiles').insert({
         user_id: signUpData.user.id, // This is the UUID from Supabase Auth
         name,
@@ -183,14 +116,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (profileError) {
         console.error("Error creating profile after signup:", profileError);
-        // Potentially try to clean up the auth user if profile creation fails critically
-        // For now, log and toast. The user is signed up in Supabase Auth.
-        toast({ variant: "destructive", title: "Signup Incomplete", description: "Account created, but profile setup failed." });
+        toast({ 
+          variant: "destructive", 
+          title: "Signup Incomplete", 
+          description: "Account created, but profile setup failed." 
+        });
       } else {
          toast({ title: "Account created", description: `Welcome, ${name}!` });
       }
       // onAuthStateChange should pick up the new user and session
-      // navigate('/') is handled by onAuthStateChange for SIGNED_IN
       
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -204,40 +138,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUserProfile = async (profileUpdates: Partial<UserProfileData>) => {
+  const updateProfile = async (profileUpdates: Partial<UserProfileData>) => {
     if (!user || !user.id) {
-      toast({ variant: "destructive", title: "Update failed", description: "You must be logged in." });
+      toast({ 
+        variant: "destructive", 
+        title: "Update failed", 
+        description: "You must be logged in." 
+      });
       return;
     }
     
-    // Optimistically update local state, or wait for DB update
-    // For simplicity, we'll update DB then let onAuthStateChange or manual fetch update state.
-
-    try {
-      const updatePayload: any = { ...profileUpdates };
-       // Ensure user_id is not part of the update payload to Supabase, it's the PK.
-      delete updatePayload.id; 
-      delete updatePayload.email; // Usually email is updated via Supabase Auth methods
-
-      const { error } = await supabase
-        .from('user_profiles')
-        .update(updatePayload)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Re-fetch profile to update local state with confirmed changes
-      await fetchAndSetUserProfile(user); // user here is SupabaseUser compatible
-
-      toast({ title: "Profile updated", description: "Your profile has been successfully updated." });
-    } catch (error: any) {
-      console.error('Profile update error:', error);
+    const { error } = await updateUserProfile(user.id, profileUpdates);
+    
+    if (error) {
       toast({
         variant: "destructive",
         title: "Update failed",
         description: error.message || "There was a problem updating your profile.",
       });
+      return;
     }
+    
+    // Re-fetch profile to update local state with confirmed changes
+    if (user) {
+      const updatedUser = await fetchUserProfile(user);
+      setUser(updatedUser);
+    }
+    
+    toast({ 
+      title: "Profile updated", 
+      description: "Your profile has been successfully updated." 
+    });
   };
 
   const logout = async () => {
@@ -267,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     signup,
     logout,
-    updateUserProfile
+    updateUserProfile: updateProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
