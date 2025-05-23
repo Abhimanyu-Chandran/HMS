@@ -52,10 +52,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formComplete, setFormComplete] = useState(false);
 
-  // Get unique specialities from doctors and specialities table
+  // Get unique specialities from both doctors and specialities table
   const doctorSpecialities = [...new Set(doctors.map(doctor => doctor.speciality))];
   const dbSpecialities = specialitiesData?.map(s => s.name) || [];
-  const allSpecialities = ['all', ...new Set([...doctorSpecialities, ...dbSpecialities])];
+  
+  // Combine and deduplicate all specialities
+  const allSpecialitiesSet = new Set([...doctorSpecialities, ...dbSpecialities]);
+  const allSpecialities = ['all', ...Array.from(allSpecialitiesSet)];
 
   // Filter doctors based on selected speciality
   const filteredDoctors = selectedSpeciality && selectedSpeciality !== 'all'
@@ -123,7 +126,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         speciality: selectedDoctorDetails.speciality,
         date: formattedDate,
         time: selectedTime,
-        status: 'scheduled',
+        status: 'scheduled' as const,
         notes: reason || null
       };
 
