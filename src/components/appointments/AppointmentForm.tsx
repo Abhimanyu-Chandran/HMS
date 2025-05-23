@@ -28,6 +28,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { useDoctors, type Doctor } from '@/hooks/useDoctors';
+import { useSpecialities } from '@/hooks/useSpecialities';
 
 interface AppointmentFormProps {
   user: any;
@@ -42,6 +43,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 }) => {
   const { toast } = useToast();
   const { doctors, loading: doctorsLoading } = useDoctors();
+  const { data: specialitiesData, isLoading: specialitiesLoading } = useSpecialities();
   
   const [selectedSpeciality, setSelectedSpeciality] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -50,8 +52,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formComplete, setFormComplete] = useState(false);
 
-  // Get unique specialities from doctors
-  const specialities = ['all', ...new Set(doctors.map(doctor => doctor.speciality))];
+  // Get unique specialities from doctors and specialities table
+  const doctorSpecialities = [...new Set(doctors.map(doctor => doctor.speciality))];
+  const dbSpecialities = specialitiesData?.map(s => s.name) || [];
+  const allSpecialities = ['all', ...new Set([...doctorSpecialities, ...dbSpecialities])];
 
   // Filter doctors based on selected speciality
   const filteredDoctors = selectedSpeciality && selectedSpeciality !== 'all'
@@ -108,9 +112,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       // Format the date as ISO string but only take the date part
       const formattedDate = selectedDate.toISOString().split('T')[0];
       
-      // Save appointment to the database using the authenticated user's UUID
-      const { data, error } = await supabase.from('appointments').insert({
-        patient_id: user.id, // This is now a proper UUID from Supabase auth
+      // Get user ID - use auth user id if available, otherwise use mock user id
+      const userId = user.id || user.user_id || 'mock-user-1';
+      
+      // Save appointment to the database
+      const appointmentData = {
+        patient_id: userId,
         doctor_id: selectedDoctorDetails.id,
         doctor_name: selectedDoctorDetails.name,
         speciality: selectedDoctorDetails.speciality,
@@ -118,7 +125,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         time: selectedTime,
         status: 'scheduled',
         notes: reason || null
-      });
+      };
+
+      console.log('Booking appointment with data:', appointmentData);
+
+      const { data, error } = await supabase.from('appointments').insert(appointmentData);
 
       if (error) {
         throw error;
@@ -147,12 +158,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     }
   };
 
-  if (doctorsLoading) {
+  if (doctorsLoading || specialitiesLoading) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hospital-primary mx-auto"></div>
-          <p className="mt-2">Loading doctors...</p>
+          <p className="mt-2">Loading doctors and specialities...</p>
         </CardContent>
       </Card>
     );
@@ -178,7 +189,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                 <SelectValue placeholder="Select a speciality" />
               </SelectTrigger>
               <SelectContent>
-                {specialities.map((speciality) => (
+                {allSpecialities.map((speciality) => (
                   <SelectItem key={speciality} value={speciality}>
                     {speciality === 'all' ? "All Specialities" : speciality}
                   </SelectItem>

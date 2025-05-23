@@ -19,7 +19,7 @@ interface Appointment {
   speciality: string;
   date: string;
   time: string;
-  status: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
   notes?: string;
 }
 
@@ -44,7 +44,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ userId, navigateToBoo
 
         if (error) throw error;
 
-        // Transform data to match the expected format
+        // Transform data to match the expected format and ensure status is properly typed
         const transformedAppointments: Appointment[] = (data || []).map(appointment => ({
           id: appointment.id,
           patientId: appointment.patient_id,
@@ -53,7 +53,9 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ userId, navigateToBoo
           speciality: appointment.speciality,
           date: appointment.date,
           time: appointment.time,
-          status: appointment.status,
+          status: ['scheduled', 'completed', 'cancelled'].includes(appointment.status) 
+            ? appointment.status as 'scheduled' | 'completed' | 'cancelled'
+            : 'scheduled', // Default to scheduled if status is invalid
           notes: appointment.notes || undefined
         }));
 
@@ -71,6 +73,28 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ userId, navigateToBoo
     };
 
     fetchAppointments();
+
+    // Set up real-time subscription for appointments
+    const channel = supabase
+      .channel('appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `patient_id=eq.${userId}`
+        },
+        (payload) => {
+          console.log('Appointment change received:', payload);
+          fetchAppointments(); // Refetch appointments when changes occur
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId, toast]);
 
   if (loading) {
