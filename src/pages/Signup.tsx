@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-// import { useToast } from "@/components/ui/use-toast"; // Similar to Login.tsx
+import { useToast } from "@/components/ui/use-toast";
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -14,19 +15,28 @@ const Signup = () => {
   const [age, setAge] = useState<number | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signup } = useAuth();
-  // const { toast } = useToast(); // Keep if page-specific toasts needed
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Form validation
     if (!name || !email || !password || !confirmPassword) {
-      alert("Please fill in all required fields.");
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+      });
       return;
     }
     
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Passwords do not match.",
+      });
       return;
     }
     
@@ -34,11 +44,9 @@ const Signup = () => {
     
     try {
       await signup(name, email, password, age ? Number(age) : undefined);
-      // Consider navigating to a "please verify email" page or directly to login/home
-      navigate('/'); 
+      navigate('/');
     } catch (error) {
-      // Error toast handled in AuthContext's signup function
-      // console.error("Signup page error:", error);
+      // Error is handled in the signup function
     } finally {
       setIsSubmitting(false);
     }
@@ -64,7 +72,6 @@ const Signup = () => {
               placeholder="Enter your full name" 
               value={name} 
               onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
             />
           </div>
           
@@ -76,12 +83,11 @@ const Signup = () => {
               placeholder="Enter your email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="age">Age (Optional)</Label>
+            <Label htmlFor="age">Age</Label>
             <Input 
               id="age" 
               type="number" 
@@ -96,10 +102,9 @@ const Signup = () => {
             <Input 
               id="password" 
               type="password" 
-              placeholder="Create a password (min. 6 characters)" 
+              placeholder="Create a password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
             />
           </div>
           
@@ -111,7 +116,6 @@ const Signup = () => {
               placeholder="Confirm your password" 
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
             />
           </div>
 

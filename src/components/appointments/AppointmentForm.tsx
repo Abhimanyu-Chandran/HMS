@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -24,24 +25,22 @@ import {
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
+import { doctors } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import useDoctors, { Doctor } from '@/hooks/useDoctors'; // Import the hook
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface AppointmentFormProps {
-  // user prop is now handled by useAuth
-  selectedDoctor: string; // This should be doctor's UUID
+  user: any;
+  selectedDoctor: string;
   onDoctorSelect: (doctorId: string) => void;
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({ 
+  user, 
   selectedDoctor, 
   onDoctorSelect 
 }) => {
-  const { user } = useAuth(); // Get user from AuthContext
   const { toast } = useToast();
-  const { doctors, isLoading: isLoadingDoctors, error: doctorsError } = useDoctors(); // Use the hook
   
   const [selectedSpeciality, setSelectedSpeciality] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -50,7 +49,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formComplete, setFormComplete] = useState(false);
 
-  // Get unique specialities from fetched doctors
+  // Get unique specialities
   const specialities = ['all', ...new Set(doctors.map(doctor => doctor.speciality))];
 
   // Filter doctors based on selected speciality
@@ -65,7 +64,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   ];
 
   // Check if form is complete to enable button
-  useEffect(() => {
+  React.useEffect(() => {
     if (selectedDoctor && selectedDate && selectedTime) {
       setFormComplete(true);
     } else {
@@ -74,7 +73,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   }, [selectedDoctor, selectedDate, selectedTime]);
 
   const handleBookAppointment = async () => {
-    if (!user || !user.id) { // Check for user and user.id
+    if (!user) {
       toast({
         variant: "destructive",
         title: "Authentication required",
@@ -105,62 +104,47 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     setIsSubmitting(true);
     
     try {
+      // Format the date as ISO string but only take the date part
       const formattedDate = selectedDate.toISOString().split('T')[0];
       
+      // Save appointment to the database
       const { data, error } = await supabase.from('appointments').insert({
-        patient_id: user.id, // Use UUID from authenticated user
-        doctor_id: selectedDoctorDetails.id, // Use UUID of doctor
+        patient_id: user.id,
+        doctor_id: selectedDoctorDetails.id,
         doctor_name: selectedDoctorDetails.name,
         speciality: selectedDoctorDetails.speciality,
         date: formattedDate,
         time: selectedTime,
-        status: 'scheduled', // Ensure this matches your enum/type if any
+        status: 'scheduled',
         notes: reason || null
-      }).select(); // .select() can be useful if you need the inserted row
+      });
 
       if (error) {
-        console.error('Supabase insert error:', error);
-        // Check for RLS violation specifically
-        if (error.message.includes("violates row-level security policy")) {
-             toast({
-                variant: "destructive",
-                title: "Booking Failed",
-                description: "You may not have permission to book this appointment. Please ensure you are logged in correctly.",
-            });
-        } else {
-            throw error; // Re-throw other errors
-        }
-      } else {
-        toast({
-          title: "Appointment Booked",
-          description: `Your appointment with ${selectedDoctorDetails.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been scheduled.`,
-        });
-    
-        onDoctorSelect('');
-        setSelectedSpeciality('');
-        setSelectedDate(undefined);
-        setSelectedTime('');
-        setReason('');
+        throw error;
       }
-    } catch (error: any) {
+      
+      toast({
+        title: "Appointment Booked",
+        description: `Your appointment with ${selectedDoctorDetails.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been scheduled.`,
+      });
+  
+      // Reset form
+      onDoctorSelect('');
+      setSelectedSpeciality('');
+      setSelectedDate(undefined);
+      setSelectedTime('');
+      setReason('');
+    } catch (error) {
       console.error('Error booking appointment:', error);
       toast({
         variant: "destructive",
         title: "Booking failed",
-        description: error.message || "There was a problem booking your appointment. Please try again.",
+        description: "There was a problem booking your appointment. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (isLoadingDoctors) {
-    return <div className="flex justify-center items-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hospital-primary"></div></div>;
-  }
-
-  if (doctorsError) {
-    return <div className="text-red-500 p-4">Error loading doctors: {doctorsError.message}</div>;
-  }
 
   return (
     <motion.div
@@ -177,10 +161,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           {/* Speciality Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Select Speciality</label>
-            <Select value={selectedSpeciality} onValueChange={(value) => {
-              setSelectedSpeciality(value);
-              onDoctorSelect(''); // Reset doctor when speciality changes
-            }}>
+            <Select value={selectedSpeciality} onValueChange={setSelectedSpeciality}>
               <SelectTrigger className="border-hospital-primary/30 focus:border-hospital-primary">
                 <SelectValue placeholder="Select a speciality" />
               </SelectTrigger>
@@ -236,6 +217,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={(date) => {
+                    // Disable past dates and weekends
                     const day = date.getDay();
                     return (
                       date < new Date(new Date().setHours(0, 0, 0, 0)) ||
@@ -286,7 +268,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             }`}
             onClick={handleBookAppointment}
-            disabled={isSubmitting || !formComplete || isLoadingDoctors}
+            disabled={isSubmitting || !formComplete}
           >
             {isSubmitting ? (
               <div className="flex items-center">
