@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -50,34 +50,31 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [selectedTime, setSelectedTime] = useState('');
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formComplete, setFormComplete] = useState(false);
 
-  // Get unique specialities from both doctors and specialities table
-  const doctorSpecialities = [...new Set(doctors.map(doctor => doctor.speciality))];
-  const dbSpecialities = specialitiesData?.map(s => s.name) || [];
-  
-  // Combine and deduplicate all specialities
-  const allSpecialitiesSet = new Set([...doctorSpecialities, ...dbSpecialities]);
-  const allSpecialities = ['all', ...Array.from(allSpecialitiesSet)];
+  // Memoize specialities computation to avoid recalculation on every render
+  const allSpecialities = useMemo(() => {
+    const doctorSpecialities = [...new Set(doctors.map(doctor => doctor.speciality))];
+    const dbSpecialities = specialitiesData?.map(s => s.name) || [];
+    const allSpecialitiesSet = new Set([...doctorSpecialities, ...dbSpecialities]);
+    return ['all', ...Array.from(allSpecialitiesSet)];
+  }, [doctors, specialitiesData]);
 
-  // Filter doctors based on selected speciality
-  const filteredDoctors = selectedSpeciality && selectedSpeciality !== 'all'
-    ? doctors.filter(doctor => doctor.speciality === selectedSpeciality)
-    : doctors;
+  // Memoize filtered doctors to avoid recalculation
+  const filteredDoctors = useMemo(() => {
+    return selectedSpeciality && selectedSpeciality !== 'all'
+      ? doctors.filter(doctor => doctor.speciality === selectedSpeciality)
+      : doctors;
+  }, [doctors, selectedSpeciality]);
 
-  // Define available time slots
-  const timeSlots = [
+  // Memoize time slots as they never change
+  const timeSlots = useMemo(() => [
     '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
     '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'
-  ];
+  ], []);
 
   // Check if form is complete to enable button
-  useEffect(() => {
-    if (selectedDoctor && selectedDate && selectedTime) {
-      setFormComplete(true);
-    } else {
-      setFormComplete(false);
-    }
+  const formComplete = useMemo(() => {
+    return !!(selectedDoctor && selectedDate && selectedTime);
   }, [selectedDoctor, selectedDate, selectedTime]);
 
   const handleBookAppointment = async () => {
@@ -112,13 +109,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Format the date as ISO string but only take the date part
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      
-      // Get user ID - use auth user id if available, otherwise use mock user id
       const userId = user.id || user.user_id || 'mock-user-1';
       
-      // Save appointment to the database
       const appointmentData = {
         patient_id: userId,
         doctor_id: selectedDoctorDetails.id,
@@ -166,7 +159,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       <Card>
         <CardContent className="p-6 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hospital-primary mx-auto"></div>
-          <p className="mt-2">Loading doctors and specialities...</p>
+          <p className="mt-2">Loading...</p>
         </CardContent>
       </Card>
     );
@@ -243,7 +236,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={(date) => {
-                    // Disable past dates and weekends
                     const day = date.getDay();
                     return (
                       date < new Date(new Date().setHours(0, 0, 0, 0)) ||
