@@ -68,7 +68,7 @@ export const useDoctors = () => {
         }
       } catch (err: any) {
         console.error('Error fetching doctors:', err);
-        setError(err.message);
+        setError(err?.message || 'Failed to fetch doctors');
         // Fall back to mock data
         setDoctors(mockDoctors);
       } finally {
