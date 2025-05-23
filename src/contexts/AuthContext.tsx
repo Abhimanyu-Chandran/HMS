@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -27,137 +28,97 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Check if user is already logged in and fetch profile data
   useEffect(() => {
-    const checkSession = async () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
         
-        // Try to fetch additional profile data from Supabase if available
-        try {
-          const { data: profileData, error } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('user_id', parsedUser.id)
-            .single();
-          
-          if (profileData && !error) {
-            // Merge the stored user data with the profile data from Supabase
-            setUser({
-              ...parsedUser,
-              age: profileData.age || undefined,
-              diseases: profileData.diseases || [],
-              disorders: profileData.disorders || []
-            });
-          } else {
-            setUser(parsedUser);
+        if (session?.user) {
+          // Fetch user profile from our custom table
+          try {
+            const { data: profile, error } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            if (profile && !error) {
+              setUser({
+                id: session.user.id,
+                name: profile.name,
+                email: profile.email,
+                role: profile.role as 'admin' | 'patient' | 'doctor',
+                age: profile.age || undefined,
+                diseases: profile.diseases || [],
+                disorders: profile.disorders || []
+              });
+            } else if (error && error.code === 'PGRST116') {
+              // Profile doesn't exist, create one
+              const newProfile = {
+                user_id: session.user.id,
+                name: session.user.email?.split('@')[0] || 'User',
+                email: session.user.email || '',
+                role: 'patient',
+                age: null,
+                diseases: [],
+                disorders: []
+              };
+              
+              await supabase.from('user_profiles').insert(newProfile);
+              
+              setUser({
+                id: session.user.id,
+                name: newProfile.name,
+                email: newProfile.email,
+                role: 'patient',
+                diseases: [],
+                disorders: []
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching user profile:', error);
           }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          setUser(parsedUser);
+        } else {
+          setUser(null);
         }
+        
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    };
-    
-    checkSession();
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      // The listener above will handle the session
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // In a real application, this would connect to your backend
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock authentication - In a real app, this would validate with a backend
-      if (email === 'admin@hospital.com' && password === 'admin123') {
-        const adminUser = { 
-          id: '1', 
-          name: 'Admin User', 
-          email: 'admin@hospital.com',
-          role: 'admin' as const
-        };
-        
-        // Store in localStorage
-        localStorage.setItem('user', JSON.stringify(adminUser));
-        setUser(adminUser);
-        
-        // Store in Supabase (upsert to handle both new and returning users)
-        await supabase.from('user_profiles').upsert({
-          user_id: adminUser.id,
-          name: adminUser.name,
-          email: adminUser.email,
-          role: adminUser.role,
-          age: null,
-          diseases: [],
-          disorders: []
-        }, { onConflict: 'user_id' });
-        
-        toast({
-          title: "Login successful",
-          description: "Welcome back, Admin!",
-        });
-      } else if (email && password) {
-        // For demo purposes, any other combination logs in as a patient
-        const regularUser = { 
-          id: '2', 
-          name: email.split('@')[0], 
-          email: email,
-          role: 'patient' as const
-        };
-        
-        // Store in localStorage
-        localStorage.setItem('user', JSON.stringify(regularUser));
-        
-        // Check if user already exists in Supabase
-        const { data: existingProfile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', regularUser.id)
-          .single();
-        
-        if (existingProfile) {
-          // User exists, update with any new profile data
-          setUser({
-            ...regularUser,
-            age: existingProfile.age || undefined,
-            diseases: existingProfile.diseases || [],
-            disorders: existingProfile.disorders || []
-          });
-        } else {
-          // New user, create profile
-          await supabase.from('user_profiles').insert({
-            user_id: regularUser.id,
-            name: regularUser.name,
-            email: regularUser.email,
-            role: regularUser.role,
-            age: null,
-            diseases: [],
-            disorders: []
-          });
-          
-          setUser(regularUser);
-        }
-        
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${regularUser.name}!`,
-        });
-      } else {
-        throw new Error('Invalid credentials');
-      }
-    } catch (error) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Login successful",
+        description: `Welcome back!`,
+      });
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: error.message || "Please check your credentials and try again.",
       });
-      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -166,95 +127,94 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (name: string, email: string, password: string, age?: number) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create new user
-      const newUser = { 
-        id: Date.now().toString(), 
-        name: name,
-        email: email,
-        role: 'patient' as const,
-        age: age || undefined,
-        diseases: [],
-        disorders: []
-      };
-      
-      // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(newUser));
-      
-      // Store in Supabase
-      await supabase.from('user_profiles').insert({
-        user_id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        age: newUser.age || null,
-        diseases: [],
-        disorders: []
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+            age: age
+          }
+        }
       });
-      
-      setUser(newUser);
-      
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Create user profile
+        await supabase.from('user_profiles').insert({
+          user_id: data.user.id,
+          name: name,
+          email: email,
+          role: 'patient',
+          age: age || null,
+          diseases: [],
+          disorders: []
+        });
+      }
+
       toast({
         title: "Account created",
         description: `Welcome to Hospital Management System, ${name}!`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Signup failed",
-        description: "There was a problem creating your account.",
+        description: error.message || "There was a problem creating your account.",
       });
-      console.error('Signup error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const updateUserProfile = async (data: Partial<User>) => {
-    if (!user) return;
+    if (!user || !session) return;
     
     try {
-      const updatedUser = { ...user, ...data };
+      const updatedProfile = { ...user, ...data };
       
-      // Update localStorage
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      // Update Supabase
       await supabase.from('user_profiles').upsert({
-        user_id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        age: updatedUser.age || null,
-        diseases: updatedUser.diseases || [],
-        disorders: updatedUser.disorders || []
+        user_id: user.id,
+        name: updatedProfile.name,
+        email: updatedProfile.email,
+        role: updatedProfile.role,
+        age: updatedProfile.age || null,
+        diseases: updatedProfile.diseases || [],
+        disorders: updatedProfile.disorders || []
       }, { onConflict: 'user_id' });
       
-      setUser(updatedUser);
+      setUser(updatedProfile);
       
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Update failed",
-        description: "There was a problem updating your profile.",
+        description: error.message || "There was a problem updating your profile.",
       });
-      console.error('Profile update error:', error);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Logout failed",
+        description: error.message || "There was a problem logging out.",
+      });
+    }
   };
 
   const value = {

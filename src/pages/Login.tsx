@@ -94,12 +94,6 @@ const Login = () => {
               Sign up
             </Link>
           </p>
-          
-          <div className="mt-4 text-sm text-gray-500">
-            <p>Demo accounts:</p>
-            <p><strong>Admin:</strong> admin@hospital.com / admin123</p>
-            <p><strong>Patient:</strong> any email / any password</p>
-          </div>
         </div>
       </div>
     </div>

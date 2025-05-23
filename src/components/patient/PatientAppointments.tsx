@@ -47,51 +47,73 @@ const PatientAppointments: React.FC<PatientAppointmentsProps> = ({ userId }) => 
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!userId) return;
+  const fetchAppointments = async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    try {
+      // Using userId to fetch appointments for the current user
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('patient_id', userId)
+        .order('date', { ascending: true });
+        
+      if (error) throw error;
       
-      setLoading(true);
-      try {
-        // Using userId to fetch appointments for the current user
-        const { data, error } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('patient_id', userId)
-          .order('date', { ascending: true });
-          
-        if (error) throw error;
-        
-        // Transform data from DB format to the format expected by AppointmentItem
-        const transformedAppointments: Appointment[] = (data || []).map((appointment: AppointmentFromDB) => ({
-          id: appointment.id,
-          doctorName: appointment.doctor_name,
-          speciality: appointment.speciality,
-          // Ensure the status is one of the allowed values
-          status: appointment.status === 'scheduled' || 
-                 appointment.status === 'completed' || 
-                 appointment.status === 'cancelled' 
-                 ? appointment.status as 'scheduled' | 'completed' | 'cancelled' 
-                 : 'scheduled',
-          date: appointment.date,
-          time: appointment.time,
-        }));
-        
-        setAppointments(transformedAppointments);
-        console.log('Fetched appointments:', transformedAppointments);
-      } catch (error) {
-        console.error('Error fetching appointments:', error);
-        toast({
-          variant: "destructive",
-          title: "Failed to load appointments",
-          description: "Please try again later.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+      // Transform data from DB format to the format expected by AppointmentItem
+      const transformedAppointments: Appointment[] = (data || []).map((appointment: AppointmentFromDB) => ({
+        id: appointment.id,
+        doctorName: appointment.doctor_name,
+        speciality: appointment.speciality,
+        // Ensure the status is one of the allowed values
+        status: appointment.status === 'scheduled' || 
+               appointment.status === 'completed' || 
+               appointment.status === 'cancelled' 
+               ? appointment.status as 'scheduled' | 'completed' | 'cancelled' 
+               : 'scheduled',
+        date: appointment.date,
+        time: appointment.time,
+      }));
+      
+      setAppointments(transformedAppointments);
+      console.log('Fetched appointments:', transformedAppointments);
+    } catch (error: any) {
+      console.error('Error fetching appointments:', error);
+      toast({
+        variant: "destructive",
+        title: "Failed to load appointments",
+        description: "Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAppointments();
+
+    // Set up real-time subscription for appointments
+    const channel = supabase
+      .channel('appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `patient_id=eq.${userId}`
+        },
+        () => {
+          // Refetch appointments when there's a change
+          fetchAppointments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId, toast]);
 
   const navigateToBookAppointment = () => {
