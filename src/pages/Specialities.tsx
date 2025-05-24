@@ -30,7 +30,7 @@ const Specialities = () => {
         {filteredSpecialities.length > 0 ? filteredSpecialities.map(speciality => <Card key={speciality.id} className="overflow-hidden hover:shadow-lg transition-all">
               <div style={{
           backgroundImage: `url(${speciality.image})`
-        }} className="h-48 w-full bg-center" />
+        }} className="h-48 w-full bg-cover bg-center" />
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-2">{speciality.name}</h3>
                 <p className="text-gray-600 mb-4">{speciality.description}</p>
