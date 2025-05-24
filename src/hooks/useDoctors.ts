@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Ensure React is imported if using React.useState
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Doctor {
@@ -43,19 +43,21 @@ const mockDoctors: Doctor[] = [
 ];
 
 export const useDoctors = () => {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [doctors, setDoctors] = React.useState<Doctor[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  // Explicitly use React.useState and ensure the type is string | null
+  const [error, setError] = React.useState<string | null>(null); 
 
   useEffect(() => {
     const fetchDoctors = async () => {
       setLoading(true);
-      setError(null);
+      setError(null); // Reset error state at the beginning
       try {
         const { data, error: rpcError } = await supabase.rpc('get_all_doctors');
 
         if (rpcError) {
           console.warn('RPC method get_all_doctors failed, falling back to mock data:', rpcError);
+          // Ensure message is a string
           const message = (rpcError && typeof rpcError.message === 'string') ? rpcError.message : 'Failed to fetch doctors via RPC.';
           setError(message);
           setDoctors(mockDoctors);
@@ -70,21 +72,21 @@ export const useDoctors = () => {
           setDoctors(mockDoctors);
         }
       } catch (caughtError: unknown) {
-        console.error('Error fetching doctors:', caughtError);
+        console.error('Error in fetchDoctors catch block:', caughtError);
         
-        let errorMessage: string = 'Failed to fetch doctors'; // Default message
-        // More robust error message extraction
-        if (typeof caughtError === 'object' && caughtError !== null && 'message' in caughtError) {
-          const potentialMessage = (caughtError as { message?: unknown }).message;
-          if (typeof potentialMessage === 'string') {
-            errorMessage = potentialMessage;
+        let extractedMessage: string = 'Failed to fetch doctors due to an unexpected error.'; // Default/fallback message
+        
+        if (typeof caughtError === 'object' && caughtError !== null) {
+          // Check if 'message' property exists and is a string
+          if ('message' in caughtError && typeof (caughtError as { message?: unknown }).message === 'string') {
+            extractedMessage = (caughtError as { message: string }).message;
           }
         } else if (typeof caughtError === 'string') {
-          errorMessage = caughtError;
+          extractedMessage = caughtError;
         }
         
-        setError(errorMessage);
-        setDoctors(mockDoctors);
+        setError(extractedMessage); // This is line 55 (approx.)
+        setDoctors(mockDoctors); // Fallback to mock data on error
       } finally {
         setLoading(false);
       }
@@ -95,3 +97,4 @@ export const useDoctors = () => {
 
   return { doctors, loading, error };
 };
+
