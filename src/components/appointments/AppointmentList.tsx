@@ -1,118 +1,28 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AppointmentCard from './AppointmentCard';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { appointments } from '@/data/mockData';
 
 interface AppointmentListProps {
   userId?: string;
   navigateToBooking: () => void;
 }
 
-interface Appointment {
-  id: string;
-  patientId: string;
-  doctorId: string;
-  doctorName: string;
-  speciality: string;
-  date: string;
-  time: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  notes?: string;
-}
-
 const AppointmentList: React.FC<AppointmentListProps> = ({ userId, navigateToBooking }) => {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('patient_id', userId)
-          .order('date', { ascending: true });
-
-        if (error) throw error;
-
-        // Transform data to match the expected format and ensure status is properly typed
-        const transformedAppointments: Appointment[] = (data || []).map(appointment => ({
-          id: appointment.id,
-          patientId: appointment.patient_id,
-          doctorId: appointment.doctor_id,
-          doctorName: appointment.doctor_name,
-          speciality: appointment.speciality,
-          date: appointment.date,
-          time: appointment.time,
-          status: ['scheduled', 'completed', 'cancelled'].includes(appointment.status) 
-            ? appointment.status as 'scheduled' | 'completed' | 'cancelled'
-            : 'scheduled', // Default to scheduled if status is invalid
-          notes: appointment.notes || undefined
-        }));
-
-        setAppointments(transformedAppointments);
-      } catch (error: any) {
-        console.error('Error fetching appointments:', error);
-        toast({
-          variant: "destructive",
-          title: "Failed to load appointments",
-          description: error.message || "Please try again later.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAppointments();
-
-    // Set up real-time subscription for appointments
-    const channel = supabase
-      .channel('appointments-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'appointments',
-          filter: `patient_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('Appointment change received:', payload);
-          fetchAppointments(); // Refetch appointments when changes occur
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, toast]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hospital-primary"></div>
-        <p className="ml-3">Loading appointments...</p>
-      </div>
-    );
-  }
+  // Filter appointments for current user
+  const userAppointments = userId
+    ? appointments.filter(apt => apt.patientId === userId)
+    : [];
 
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">My Appointments</h2>
       
-      {appointments.length > 0 ? (
+      {userAppointments.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {appointments.map((appointment) => (
+          {userAppointments.map((appointment) => (
             <AppointmentCard key={appointment.id} appointment={appointment} />
           ))}
         </div>

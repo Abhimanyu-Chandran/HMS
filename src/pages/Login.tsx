@@ -40,7 +40,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-hospital-soft-violet to-black py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-hospital-soft-blue to-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="form-container">
         <div className="text-center">
           <div className="mx-auto bg-hospital-primary rounded-full w-12 h-12 flex items-center justify-center mb-4">
@@ -94,6 +94,12 @@ const Login = () => {
               Sign up
             </Link>
           </p>
+          
+          <div className="mt-4 text-sm text-gray-500">
+            <p>Demo accounts:</p>
+            <p><strong>Admin:</strong> admin@hospital.com / admin123</p>
+            <p><strong>Patient:</strong> any email / any password</p>
+          </div>
         </div>
       </div>
     </div>

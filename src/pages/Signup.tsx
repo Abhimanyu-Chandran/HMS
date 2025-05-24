@@ -12,7 +12,6 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [age, setAge] = useState<number | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signup } = useAuth();
   const { toast } = useToast();
@@ -26,7 +25,7 @@ const Signup = () => {
       toast({
         variant: "destructive",
         title: "Validation Error",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all fields.",
       });
       return;
     }
@@ -43,7 +42,7 @@ const Signup = () => {
     setIsSubmitting(true);
     
     try {
-      await signup(name, email, password, age ? Number(age) : undefined);
+      await signup(name, email, password);
       navigate('/');
     } catch (error) {
       // Error is handled in the signup function
@@ -53,7 +52,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-hospital-soft-violet to-black py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-hospital-soft-blue to-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="form-container">
         <div className="text-center">
           <div className="mx-auto bg-hospital-primary rounded-full w-12 h-12 flex items-center justify-center mb-4">
@@ -83,17 +82,6 @@ const Signup = () => {
               placeholder="Enter your email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="age">Age</Label>
-            <Input 
-              id="age" 
-              type="number" 
-              placeholder="Enter your age" 
-              value={age} 
-              onChange={(e) => setAge(e.target.value ? Number(e.target.value) : '')}
             />
           </div>
           
