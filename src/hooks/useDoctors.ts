@@ -1,5 +1,5 @@
 
-import { useState as reactUseState, useEffect } from 'react'; // Alias useState
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Doctor {
@@ -43,39 +43,34 @@ const mockDoctors: Doctor[] = [
 ];
 
 export const useDoctors = () => {
-  const [doctors, setDoctors] = reactUseState<Doctor[]>([]); // Use aliased useState
-  const [loading, setLoading] = reactUseState(true);      // Use aliased useState
-  const [error, setError] = reactUseState<string | null>(null); // Use aliased useState
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {
-      setLoading(true);
-      setError(null); 
       try {
-        const { data, error: rpcError } = await supabase.rpc('get_all_doctors');
+        // Try to fetch from database first using a raw query
+        // This avoids the TypeScript issue with the table name
+        const { data, error } = await supabase.rpc('get_all_doctors');
 
-        if (rpcError) {
-          console.warn('RPC method get_all_doctors failed, falling back to mock data:', rpcError);
-          const message = (rpcError && typeof rpcError.message === 'string') ? rpcError.message : 'Failed to fetch doctors via RPC.';
-          setError(message);
+        if (error) {
+          console.warn('RPC method not found, falling back to mock data:', error);
           setDoctors(mockDoctors);
           return;
         }
 
         if (data && Array.isArray(data)) {
-          setDoctors(data as Doctor[]);
+          setDoctors(data);
         } else {
-          console.warn('No data returned from get_all_doctors or data is not an array, using mock data');
-          setError('Received invalid data format from server.');
+          console.warn('No data returned from doctors query, using mock data');
           setDoctors(mockDoctors);
         }
-      } catch (caughtError: unknown) {
-        console.error('Error in fetchDoctors catch block:', caughtError);
-        
-        const simplifiedErrorMessage = 'An error occurred while fetching doctor data.';
-        setError(simplifiedErrorMessage); 
-        
-        setDoctors(mockDoctors); 
+      } catch (err: any) {
+        console.error('Error fetching doctors:', err);
+        setError(err.message);
+        // Fall back to mock data
+        setDoctors(mockDoctors);
       } finally {
         setLoading(false);
       }
@@ -86,4 +81,3 @@ export const useDoctors = () => {
 
   return { doctors, loading, error };
 };
-
