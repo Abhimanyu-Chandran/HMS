@@ -49,28 +49,42 @@ export const useDoctors = () => {
 
   useEffect(() => {
     const fetchDoctors = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        // Try to fetch from database first using a raw query
-        // This avoids the TypeScript issue with the table name
-        const { data, error } = await supabase.rpc('get_all_doctors');
+        const { data, error: rpcError } = await supabase.rpc('get_all_doctors');
 
-        if (error) {
-          console.warn('RPC method not found, falling back to mock data:', error);
+        if (rpcError) {
+          console.warn('RPC method get_all_doctors failed, falling back to mock data:', rpcError);
+          const message = (rpcError && typeof rpcError.message === 'string') ? rpcError.message : 'Failed to fetch doctors via RPC.';
+          setError(message);
           setDoctors(mockDoctors);
           return;
         }
 
         if (data && Array.isArray(data)) {
-          setDoctors(data);
+          setDoctors(data as Doctor[]);
         } else {
-          console.warn('No data returned from doctors query, using mock data');
+          console.warn('No data returned from get_all_doctors or data is not an array, using mock data');
+          setError('Received invalid data format from server.');
           setDoctors(mockDoctors);
         }
-      } catch (err: any) {
-        console.error('Error fetching doctors:', err);
-        setError(err?.message || 'Failed to fetch doctors');
-        // Fall back to mock data
-        setDoctors(mockDoctors);
+      } catch (caughtError: unknown) { // Changed from 'any' to 'unknown'
+        console.error('Error fetching doctors:', caughtError);
+        
+        let errorMessage: string = 'Failed to fetch doctors'; // Default message
+        // More robust error message extraction
+        if (typeof caughtError === 'object' && caughtError !== null && 'message' in caughtError) {
+          const potentialMessage = (caughtError as { message?: unknown }).message;
+          if (typeof potentialMessage === 'string') {
+            errorMessage = potentialMessage;
+          }
+        } else if (typeof caughtError === 'string') {
+          errorMessage = caughtError;
+        }
+        
+        setError(errorMessage); // Pass the extracted string message
+        setDoctors(mockDoctors); // Fall back to mock data
       } finally {
         setLoading(false);
       }
