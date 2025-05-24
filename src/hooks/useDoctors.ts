@@ -69,7 +69,7 @@ export const useDoctors = () => {
           setError('Received invalid data format from server.');
           setDoctors(mockDoctors);
         }
-      } catch (caughtError: unknown) { // Changed from 'any' to 'unknown'
+      } catch (caughtError: unknown) {
         console.error('Error fetching doctors:', caughtError);
         
         let errorMessage: string = 'Failed to fetch doctors'; // Default message
@@ -83,8 +83,8 @@ export const useDoctors = () => {
           errorMessage = caughtError;
         }
         
-        setError(errorMessage); // Pass the extracted string message
-        setDoctors(mockDoctors); // Fall back to mock data
+        setError(errorMessage);
+        setDoctors(mockDoctors);
       } finally {
         setLoading(false);
       }
