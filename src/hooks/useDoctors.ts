@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react'; // Ensure React is imported if using React.useState
+import { useState, useEffect } from 'react'; // Ensure React is imported if using React.useState, but we'll use useState directly
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Doctor {
@@ -43,10 +42,9 @@ const mockDoctors: Doctor[] = [
 ];
 
 export const useDoctors = () => {
-  const [doctors, setDoctors] = React.useState<Doctor[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  // Explicitly use React.useState and ensure the type is string | null
-  const [error, setError] = React.useState<string | null>(null); 
+  const [doctors, setDoctors] = useState<Doctor[]>([]); // Changed from React.useState
+  const [loading, setLoading] = useState(true);      // Changed from React.useState
+  const [error, setError] = useState<string | null>(null); // Changed from React.useState
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -57,7 +55,6 @@ export const useDoctors = () => {
 
         if (rpcError) {
           console.warn('RPC method get_all_doctors failed, falling back to mock data:', rpcError);
-          // Ensure message is a string
           const message = (rpcError && typeof rpcError.message === 'string') ? rpcError.message : 'Failed to fetch doctors via RPC.';
           setError(message);
           setDoctors(mockDoctors);
@@ -74,19 +71,12 @@ export const useDoctors = () => {
       } catch (caughtError: unknown) {
         console.error('Error in fetchDoctors catch block:', caughtError);
         
-        let extractedMessage: string = 'Failed to fetch doctors due to an unexpected error.'; // Default/fallback message
+        // Simplified error message for debugging TypeScript issue
+        const simplifiedErrorMessage = 'An error occurred while fetching doctor data.';
+        setError(simplifiedErrorMessage); // Using a simple literal string to test setError
         
-        if (typeof caughtError === 'object' && caughtError !== null) {
-          // Check if 'message' property exists and is a string
-          if ('message' in caughtError && typeof (caughtError as { message?: unknown }).message === 'string') {
-            extractedMessage = (caughtError as { message: string }).message;
-          }
-        } else if (typeof caughtError === 'string') {
-          extractedMessage = caughtError;
-        }
-        
-        setError(extractedMessage); // This is line 55 (approx.)
-        setDoctors(mockDoctors); // Fallback to mock data on error
+        // Fallback to mock data on error
+        setDoctors(mockDoctors); 
       } finally {
         setLoading(false);
       }
@@ -97,4 +87,3 @@ export const useDoctors = () => {
 
   return { doctors, loading, error };
 };
-
