@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'; // Ensure React is imported if using React.useState, but we'll use useState directly
+
+import { useState as reactUseState, useEffect } from 'react'; // Alias useState
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Doctor {
@@ -42,14 +43,14 @@ const mockDoctors: Doctor[] = [
 ];
 
 export const useDoctors = () => {
-  const [doctors, setDoctors] = useState<Doctor[]>([]); // Changed from React.useState
-  const [loading, setLoading] = useState(true);      // Changed from React.useState
-  const [error, setError] = useState<string | null>(null); // Changed from React.useState
+  const [doctors, setDoctors] = reactUseState<Doctor[]>([]); // Use aliased useState
+  const [loading, setLoading] = reactUseState(true);      // Use aliased useState
+  const [error, setError] = reactUseState<string | null>(null); // Use aliased useState
 
   useEffect(() => {
     const fetchDoctors = async () => {
       setLoading(true);
-      setError(null); // Reset error state at the beginning
+      setError(null); 
       try {
         const { data, error: rpcError } = await supabase.rpc('get_all_doctors');
 
@@ -71,11 +72,9 @@ export const useDoctors = () => {
       } catch (caughtError: unknown) {
         console.error('Error in fetchDoctors catch block:', caughtError);
         
-        // Simplified error message for debugging TypeScript issue
         const simplifiedErrorMessage = 'An error occurred while fetching doctor data.';
-        setError(simplifiedErrorMessage); // Using a simple literal string to test setError
+        setError(simplifiedErrorMessage); 
         
-        // Fallback to mock data on error
         setDoctors(mockDoctors); 
       } finally {
         setLoading(false);
@@ -87,3 +86,4 @@ export const useDoctors = () => {
 
   return { doctors, loading, error };
 };
+
